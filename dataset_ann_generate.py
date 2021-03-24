@@ -8,7 +8,7 @@ def anns2gtboxes(gtanns):
     gtboxes = []
     for ann in gtanns:
         box = xywh2cxcywh(ann['bbox'])
-        print(ann)
+        box.insert(0,ann['category_id'])
         #box.insert(0,)
         gtboxes.append(box)
     return gtboxes
@@ -20,6 +20,9 @@ def coco2yolov5():
 
     save_folder = "/data1/qilei_chen/DATA/erosive/labels/"+set_name
 
+    if not os.path.exists(save_folder):
+        os.makedirs(save_folder)
+
     coco_instance = COCO(anns_file)
 
     coco_imgs = coco_instance.imgs
@@ -28,5 +31,19 @@ def coco2yolov5():
         gtannIds = coco_instance.getAnnIds(imgIds= img_id)
         gtanns = coco_instance.loadAnns(gtannIds)  
         gtboxes = anns2gtboxes(gtanns) 
+        img_filename = coco_imgs[img_id]['filename']
+        label_filename = img_filename[:-3]+"txt"
+        label_filedir = os.path.join(save_folder,label_filename)
+        label_file = open(label_filedir,'w')
+        
+        for gtbox in gtboxes:
+            count=0
+            for dignum in gtbox:
+                label_file.write(str(dignum))
+                if count==4:
+                    label_file.write("\n")
+                else:
+                    label_file.write(" ")
+                count+=1
 
 coco2yolov5()
