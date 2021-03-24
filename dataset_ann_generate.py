@@ -15,7 +15,7 @@ def anns2gtboxes(gtanns):
 
 def coco2yolov5():
     sets = ['train','test']
-    set_name = sets[0] #
+    set_name = sets[1] #
     anns_file = '/data1/qilei_chen/DATA/erosive/annotations/'+set_name+'.json'
 
     save_folder = "/data1/qilei_chen/DATA/erosive/labels/"+set_name
@@ -28,3 +28,5 @@ def coco2yolov5():
         gtannIds = coco_instance.getAnnIds(imgIds= img_id)
         gtanns = coco_instance.loadAnns(gtannIds)  
         gtboxes = anns2gtboxes(gtanns) 
+
+coco2yolov5()
