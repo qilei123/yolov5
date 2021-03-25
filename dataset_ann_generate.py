@@ -34,7 +34,7 @@ def coco2yolov5():
         img_filename = coco_imgs[img_id]['file_name']
 
         cp_command = "cp "+"/data1/qilei_chen/DATA/erosive/images/"+img_filename +" /data1/qilei_chen/DATA/erosive/yolov5/images/"+set_name+"/"
-
+        os.system(cp_command)
         label_filename = img_filename[:-3]+"txt"
         label_filedir = os.path.join(save_folder,label_filename)
         label_file = open(label_filedir,'w')
