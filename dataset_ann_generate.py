@@ -38,7 +38,8 @@ def coco2yolov5():
         for gtbox in gtboxes:
             count=0
             for dignum in gtbox:
-                label_file.write(str(dignum))
+                if count==0:
+                    label_file.write(str(dignum))
                 if count==1 or count==3:
                     label_file.write(str(dignum/coco_imgs[img_id]['width']))
                 if count==2 or count==4:
