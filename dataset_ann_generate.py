@@ -4,7 +4,7 @@ import os
 def xywh2cxcywh(bbox):
     return [bbox[0]+bbox[2]/2,bbox[1]+bbox[3]/2,bbox[2],bbox[3]]
 
-def anns2gtboxes(gtanns):
+def anns2gtboxes(gtanns,w,h):
     gtboxes = []
     for ann in gtanns:
         box = xywh2cxcywh(ann['bbox'])
@@ -30,7 +30,7 @@ def coco2yolov5():
     for img_id in coco_imgs:
         gtannIds = coco_instance.getAnnIds(imgIds= img_id)
         gtanns = coco_instance.loadAnns(gtannIds)  
-        gtboxes = anns2gtboxes(gtanns) 
+        gtboxes = anns2gtboxes(gtanns,coco_imgs[img_id]['width'],coco_imgs[img_id]['height']) 
         img_filename = coco_imgs[img_id]['file_name']
         label_filename = img_filename[:-3]+"txt"
         label_filedir = os.path.join(save_folder,label_filename)
