@@ -11,6 +11,7 @@
 
 # train and val data as 1) directory: path/images/, 2) file: path/images.txt, or 3) list: [path1/images/, path2/images/]
 train: /data1/qilei_chen/DATA/erosive/yolov5/images/train/
+test: /data1/qilei_chen/DATA/erosive/yolov5/images/test/ 
 val: /data1/qilei_chen/DATA/erosive/yolov5/images/test/  
 
 # number of classes
