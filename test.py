@@ -34,7 +34,7 @@ def test(data,
          save_txt=False,  # for auto-labelling
          save_hybrid=False,  # for hybrid auto-labelling
          save_conf=False,  # save auto-label confidences
-         plots=True,
+         plots=False,
          wandb_logger=None,
          compute_loss=None,
          is_coco=False):
