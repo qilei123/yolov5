@@ -31,7 +31,7 @@ def coco2yolov5():
         gtannIds = coco_instance.getAnnIds(imgIds= img_id)
         gtanns = coco_instance.loadAnns(gtannIds)  
         gtboxes = anns2gtboxes(gtanns) 
-        img_filename = coco_imgs[img_id]['filename']
+        img_filename = coco_imgs[img_id]['file_name']
         label_filename = img_filename[:-3]+"txt"
         label_filedir = os.path.join(save_folder,label_filename)
         label_file = open(label_filedir,'w')
