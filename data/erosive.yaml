@@ -14,7 +14,7 @@ train: /data1/qilei_chen/DATA/erosive/yolov5/images/train/
 val: /data1/qilei_chen/DATA/erosive/yolov5/images/test/  
 
 # number of classes
-nc: 1
+nc: 2
 
 # class names
 names: ['erosive']
