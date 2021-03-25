@@ -146,6 +146,8 @@ class ConfusionMatrix:
             j = m0 == i
             if n and sum(j) == 1:
                 print(m1)
+                print(gc)
+                print(detection_classes)
                 self.matrix[gc, detection_classes[m1[j]]] += 1  # correct
             else:
                 self.matrix[self.nc, gc] += 1  # background FP
