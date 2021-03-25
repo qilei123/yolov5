@@ -148,6 +148,7 @@ class ConfusionMatrix:
                 print(m1)
                 print(gc)
                 print(detection_classes)
+                print(detection_classes[m1[j]])
                 print(self.matrix)
                 self.matrix[gc, detection_classes[m1[j]]] += 1  # correct
             else:
