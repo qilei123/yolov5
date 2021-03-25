@@ -169,6 +169,7 @@ def test(data,
                                   'category_id': coco91class[int(p[5])] if is_coco else int(p[5]),
                                   'bbox': [round(x, 3) for x in b],
                                   'score': round(p[4], 5)})
+                    print(is_coco)
                     print(coco91class[int(p[5])] if is_coco else int(p[5]))
                     print(int(p[5]))
 
