@@ -34,7 +34,7 @@ def test(data,
          save_txt=False,  # for auto-labelling
          save_hybrid=False,  # for hybrid auto-labelling
          save_conf=False,  # save auto-label confidences
-         plots=False,
+         plots=True,
          wandb_logger=None,
          compute_loss=None,
          is_coco=False):
@@ -169,6 +169,8 @@ def test(data,
                                   'category_id': coco91class[int(p[5])] if is_coco else int(p[5]),
                                   'bbox': [round(x, 3) for x in b],
                                   'score': round(p[4], 5)})
+                    print(coco91class[int(p[5])] if is_coco else int(p[5]))
+                    print(int(p[5]))
 
             # Assign all predictions as incorrect
             correct = torch.zeros(pred.shape[0], niou, dtype=torch.bool, device=device)
