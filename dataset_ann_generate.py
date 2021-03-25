@@ -35,7 +35,7 @@ def coco2yolov5():
         label_filename = img_filename[:-3]+"txt"
         label_filedir = os.path.join(save_folder,label_filename)
         label_file = open(label_filedir,'w')
-        
+        print(coco_imgs[img_id])
         for gtbox in gtboxes:
             count=0
             for dignum in gtbox:
