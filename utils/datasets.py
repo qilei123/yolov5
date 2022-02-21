@@ -5,6 +5,7 @@ Dataloaders and dataset utils
 
 import glob
 import hashlib
+import imp
 import json
 import math
 import os
@@ -26,6 +27,8 @@ from PIL import ExifTags, Image, ImageOps
 from torch.utils.data import DataLoader, Dataset, dataloader, distributed
 from tqdm import tqdm
 
+import sys
+sys.path.append('/data1/qilei_chen/DEVELOPMENTS/yolov5')
 #from pycocotools.coco import COCO
 
 from utils.augmentations import Albumentations, augment_hsv, copy_paste, letterbox, mixup, random_perspective
