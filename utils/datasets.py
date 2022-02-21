@@ -1149,6 +1149,8 @@ class LoadImagesAndLabels4COCO(LoadImagesAndLabels):
 
             if len(boxes)>0:
                 self.shapes.append((img_width,img_height))
+                if 'Wide' in img['file_name']:
+                    img['file_name'] = img['file_name'].replace('andover','andover_wide')
                 self.img_files.append(os.path.join(images_root,img['file_name']))
                 self.labels.append(np.array(boxes, dtype=np.float64))
                 self.segments.append(np.array(segs, dtype=np.float64))
