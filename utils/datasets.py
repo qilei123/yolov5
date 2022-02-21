@@ -29,7 +29,7 @@ from tqdm import tqdm
 
 import sys
 sys.path.append('/data1/qilei_chen/DEVELOPMENTS/yolov5')
-#from pycocotools.coco import COCO
+from pycocotools.coco import COCO
 
 from utils.augmentations import Albumentations, augment_hsv, copy_paste, letterbox, mixup, random_perspective
 from utils.general import (DATASETS_DIR, LOGGER, NUM_THREADS, check_dataset, check_requirements, check_yaml, clean_str,
@@ -813,138 +813,6 @@ class LoadImagesAndLabels(Dataset):
 
         return torch.stack(img4, 0), torch.cat(label4, 0), path4, shapes4
 
-
-class LoadImagesAndLabels4COCO(LoadImagesAndLabels):
-    # YOLOv5 train_loader/val_loader, loads images and labels for training and validation
-    cache_version = 0.6  # dataset labels *.cache version
-
-    def __init__(self, path, img_size=640, batch_size=16, augment=False, hyp=None, rect=False, image_weights=False,
-                 cache_images=False, single_cls=False, stride=32, pad=0.0, prefix=''):
-        self.img_size = img_size
-        self.augment = augment
-        self.hyp = hyp
-        self.image_weights = image_weights
-        self.rect = False if image_weights else rect
-        self.mosaic = self.augment and not self.rect  # load 4 images at a time into a mosaic (only during training)
-        self.mosaic_border = [-img_size // 2, -img_size // 2]
-        self.stride = stride
-        self.path = path
-        self.albumentations = Albumentations() if augment else None
-
-        try:
-            f = []  # image files
-            for p in path if isinstance(path, list) else [path]:
-                p = Path(p)  # os-agnostic
-                if p.is_dir():  # dir
-                    f += glob.glob(str(p / '**' / '*.*'), recursive=True)
-                    # f = list(p.rglob('*.*'))  # pathlib
-                elif p.is_file():  # file
-                    with open(p) as t:
-                        t = t.read().strip().splitlines()
-                        parent = str(p.parent) + os.sep
-                        f += [x.replace('./', parent) if x.startswith('./') else x for x in t]  # local to global path
-                        # f += [p.parent / x.lstrip(os.sep) for x in t]  # local to global path (pathlib)
-                else:
-                    raise Exception(f'{prefix}{p} does not exist')
-            self.img_files = sorted(x.replace('/', os.sep) for x in f if x.split('.')[-1].lower() in IMG_FORMATS)
-            # self.img_files = sorted([x for x in f if x.suffix[1:].lower() in IMG_FORMATS])  # pathlib
-            assert self.img_files, f'{prefix}No images found'
-        except Exception as e:
-            raise Exception(f'{prefix}Error loading data from {path}: {e}\nSee {HELP_URL}')
-
-        # Check cache
-        self.label_files = img2label_paths(self.img_files)  # labels
-        cache_path = (p if p.is_file() else Path(self.label_files[0]).parent).with_suffix('.cache')
-        try:
-            cache, exists = np.load(cache_path, allow_pickle=True).item(), True  # load dict
-            assert cache['version'] == self.cache_version  # same version
-            assert cache['hash'] == get_hash(self.label_files + self.img_files)  # same hash
-        except Exception:
-            cache, exists = self.cache_labels(cache_path, prefix), False  # cache
-
-        # Display cache
-        nf, nm, ne, nc, n = cache.pop('results')  # found, missing, empty, corrupt, total
-        if exists:
-            d = f"Scanning '{cache_path}' images and labels... {nf} found, {nm} missing, {ne} empty, {nc} corrupt"
-            tqdm(None, desc=prefix + d, total=n, initial=n)  # display cache results
-            if cache['msgs']:
-                LOGGER.info('\n'.join(cache['msgs']))  # display warnings
-        assert nf > 0 or not augment, f'{prefix}No labels in {cache_path}. Can not train without labels. See {HELP_URL}'
-
-        # Read cache
-        [cache.pop(k) for k in ('hash', 'version', 'msgs')]  # remove items
-        labels, shapes, self.segments = zip(*cache.values())
-        self.labels = list(labels)
-        self.shapes = np.array(shapes, dtype=np.float64)
-        self.img_files = list(cache.keys())  # update
-        self.label_files = img2label_paths(cache.keys())  # update
-        n = len(shapes)  # number of images
-        bi = np.floor(np.arange(n) / batch_size).astype(np.int)  # batch index
-        nb = bi[-1] + 1  # number of batches
-        self.batch = bi  # batch index of image
-        self.n = n
-        self.indices = range(n)
-
-        # Update labels
-        include_class = []  # filter labels to include only these classes (optional)
-        include_class_array = np.array(include_class).reshape(1, -1)
-        for i, (label, segment) in enumerate(zip(self.labels, self.segments)):
-            if include_class:
-                j = (label[:, 0:1] == include_class_array).any(1)
-                self.labels[i] = label[j]
-                if segment:
-                    self.segments[i] = segment[j]
-            if single_cls:  # single-class training, merge all classes into 0
-                self.labels[i][:, 0] = 0
-                if segment:
-                    self.segments[i][:, 0] = 0
-
-        # Rectangular Training
-        if self.rect:
-            # Sort by aspect ratio
-            s = self.shapes  # wh
-            ar = s[:, 1] / s[:, 0]  # aspect ratio
-            irect = ar.argsort()
-            self.img_files = [self.img_files[i] for i in irect]
-            self.label_files = [self.label_files[i] for i in irect]
-            self.labels = [self.labels[i] for i in irect]
-            self.shapes = s[irect]  # wh
-            ar = ar[irect]
-
-            # Set training image shapes
-            shapes = [[1, 1]] * nb
-            for i in range(nb):
-                ari = ar[bi == i]
-                mini, maxi = ari.min(), ari.max()
-                if maxi < 1:
-                    shapes[i] = [maxi, 1]
-                elif mini > 1:
-                    shapes[i] = [1, 1 / mini]
-
-            self.batch_shapes = np.ceil(np.array(shapes) * img_size / stride + pad).astype(np.int) * stride
-
-        # Cache images into RAM/disk for faster training (WARNING: large datasets may exceed system resources)
-        self.imgs, self.img_npy = [None] * n, [None] * n
-        if cache_images:
-            if cache_images == 'disk':
-                self.im_cache_dir = Path(Path(self.img_files[0]).parent.as_posix() + '_npy')
-                self.img_npy = [self.im_cache_dir / Path(f).with_suffix('.npy').name for f in self.img_files]
-                self.im_cache_dir.mkdir(parents=True, exist_ok=True)
-            gb = 0  # Gigabytes of cached images
-            self.img_hw0, self.img_hw = [None] * n, [None] * n
-            results = ThreadPool(NUM_THREADS).imap(self.load_image, range(n))
-            pbar = tqdm(enumerate(results), total=n)
-            for i, x in pbar:
-                if cache_images == 'disk':
-                    if not self.img_npy[i].exists():
-                        np.save(self.img_npy[i].as_posix(), x[0])
-                    gb += self.img_npy[i].stat().st_size
-                else:  # 'ram'
-                    self.imgs[i], self.img_hw0[i], self.img_hw[i] = x  # im, hw_orig, hw_resized = load_image(self, i)
-                    gb += self.imgs[i].nbytes
-                pbar.desc = f'{prefix}Caching images ({gb / 1E9:.1f}GB {cache_images})'
-            pbar.close()    
-
 # Ancillary functions --------------------------------------------------------------------------------------------------
 def create_folder(path='./new'):
     # Create folder
@@ -1172,6 +1040,180 @@ def dataset_stats(path='coco128.yaml', autodownload=False, verbose=False, profil
         print(json.dumps(stats, indent=2, sort_keys=False))
     return stats
 
+class LoadImagesAndLabels4COCO(LoadImagesAndLabels):
+    # YOLOv5 train_loader/val_loader, loads images and labels for training and validation
+    cache_version = 0.6  # dataset labels *.cache version
+
+    def __init__(self, path, img_size=640, batch_size=16, augment=False, hyp=None, rect=False, image_weights=False,
+                 cache_images=False, single_cls=False, stride=32, pad=0.0, prefix=''):
+        self.img_size = img_size
+        self.augment = augment
+        self.hyp = hyp
+        self.image_weights = image_weights
+        self.rect = False if image_weights else rect
+        self.mosaic = self.augment and not self.rect  # load 4 images at a time into a mosaic (only during training)
+        self.mosaic_border = [-img_size // 2, -img_size // 2]
+        self.stride = stride
+        self.path = path
+        self.albumentations = Albumentations() if augment else None
+        '''
+        try:
+            f = []  # image files
+            for p in path if isinstance(path, list) else [path]:
+                p = Path(p)  # os-agnostic
+                if p.is_dir():  # dir
+                    f += glob.glob(str(p / '**' / '*.*'), recursive=True)
+                    # f = list(p.rglob('*.*'))  # pathlib
+                elif p.is_file():  # file
+                    with open(p) as t:
+                        t = t.read().strip().splitlines()
+                        parent = str(p.parent) + os.sep
+                        f += [x.replace('./', parent) if x.startswith('./') else x for x in t]  # local to global path
+                        # f += [p.parent / x.lstrip(os.sep) for x in t]  # local to global path (pathlib)
+                else:
+                    raise Exception(f'{prefix}{p} does not exist')
+            self.img_files = sorted(x.replace('/', os.sep) for x in f if x.split('.')[-1].lower() in IMG_FORMATS)
+            # self.img_files = sorted([x for x in f if x.suffix[1:].lower() in IMG_FORMATS])  # pathlib
+            assert self.img_files, f'{prefix}No images found'
+        except Exception as e:
+            raise Exception(f'{prefix}Error loading data from {path}: {e}\nSee {HELP_URL}')
+
+        # Check cache
+        self.label_files = img2label_paths(self.img_files)  # labels
+        cache_path = (p if p.is_file() else Path(self.label_files[0]).parent).with_suffix('.cache')
+        try:
+            cache, exists = np.load(cache_path, allow_pickle=True).item(), True  # load dict
+            assert cache['version'] == self.cache_version  # same version
+            assert cache['hash'] == get_hash(self.label_files + self.img_files)  # same hash
+        except Exception:
+            cache, exists = self.cache_labels(cache_path, prefix), False  # cache
+
+        # Display cache
+        nf, nm, ne, nc, n = cache.pop('results')  # found, missing, empty, corrupt, total
+        if exists:
+            d = f"Scanning '{cache_path}' images and labels... {nf} found, {nm} missing, {ne} empty, {nc} corrupt"
+            tqdm(None, desc=prefix + d, total=n, initial=n)  # display cache results
+            if cache['msgs']:
+                LOGGER.info('\n'.join(cache['msgs']))  # display warnings
+        assert nf > 0 or not augment, f'{prefix}No labels in {cache_path}. Can not train without labels. See {HELP_URL}'
+        '''
+        # dictory example:
+        # annotations: path = data_root/annotations/train.json; here path is the dir for annotation file
+        # images: data_root/images/*
+        coco = COCO(path)
+        data_root = Path(path).parent.parent
+        images_root = os.path.join(data_root,'images')
+        self.img_files =  []
+        self.labels = []
+        self.shapes = []
+        self.segments = []
+
+        for ImgId in coco.getImgIds():
+
+            img = coco.loadImgs([ImgId])[0]
+            
+            self.img_files.append(os.path.join(images_root,img['file_name']))
+            
+            img_width,img_height = img['width'],img['height']
+            self.shapes.append((img_width,img_height))
+
+            annIds =  coco.getAnnIds(ImgId)
+            anns = coco.loadAnns(annIds)
+
+            boxes = []
+            segs = []
+            for ann in anns:
+                
+                box = [ann['category_id'],
+                        ann['bbox'][0]/img_width,ann['bbox'][1]/img_height,
+                        ann['bbox'][2]/img_width,ann['bbox'][3]/img_height]
+                boxes.append(box)
+
+                seg = []
+                seg.append(ann['category_id'])
+                for coord_index,coord in enumerate(ann['segmentation'][0]):
+                    if coord_index%2==0:
+                        seg.append(coord/img_width)
+                    else:
+                        seg.append(coord/img_height)
+                segs.append(seg)
+
+            self.labels.append(np.array(boxes, dtype=np.float64))
+            self.segments.append(np.array(segs, dtype=np.float64))
+
+        # Read cache
+        #[cache.pop(k) for k in ('hash', 'version', 'msgs')]  # remove items
+        #labels, shapes, self.segments = zip(*cache.values())
+        #self.labels = list(labels)
+        self.shapes = np.array(self.shapes, dtype=np.float64)
+        #self.img_files = list(cache.keys())  # update
+        #self.label_files = img2label_paths(cache.keys())  # update
+        n = len(self.shapes)  # number of images
+        bi = np.floor(np.arange(n) / batch_size).astype(np.int)  # batch index
+        nb = bi[-1] + 1  # number of batches
+        self.batch = bi  # batch index of image
+        self.n = n
+        self.indices = range(n)
+
+        # Update labels
+        include_class = []  # filter labels to include only these classes (optional)
+        include_class_array = np.array(include_class).reshape(1, -1)
+        for i, (label, segment) in enumerate(zip(self.labels, self.segments)):
+            if include_class:
+                j = (label[:, 0:1] == include_class_array).any(1)
+                self.labels[i] = label[j]
+                if segment:
+                    self.segments[i] = segment[j]
+            if single_cls:  # single-class training, merge all classes into 0
+                self.labels[i][:, 0] = 0
+                if segment:
+                    self.segments[i][:, 0] = 0
+
+        # Rectangular Training
+        if self.rect:
+            # Sort by aspect ratio
+            s = self.shapes  # wh
+            ar = s[:, 1] / s[:, 0]  # aspect ratio
+            irect = ar.argsort()
+            self.img_files = [self.img_files[i] for i in irect]
+            #self.label_files = [self.label_files[i] for i in irect]
+            self.labels = [self.labels[i] for i in irect]
+            self.shapes = s[irect]  # wh
+            ar = ar[irect]
+
+            # Set training image shapes
+            shapes = [[1, 1]] * nb
+            for i in range(nb):
+                ari = ar[bi == i]
+                mini, maxi = ari.min(), ari.max()
+                if maxi < 1:
+                    shapes[i] = [maxi, 1]
+                elif mini > 1:
+                    shapes[i] = [1, 1 / mini]
+
+            self.batch_shapes = np.ceil(np.array(shapes) * img_size / stride + pad).astype(np.int) * stride
+
+        # Cache images into RAM/disk for faster training (WARNING: large datasets may exceed system resources)
+        self.imgs, self.img_npy = [None] * n, [None] * n
+        if cache_images:
+            if cache_images == 'disk':
+                self.im_cache_dir = Path(Path(self.img_files[0]).parent.as_posix() + '_npy')
+                self.img_npy = [self.im_cache_dir / Path(f).with_suffix('.npy').name for f in self.img_files]
+                self.im_cache_dir.mkdir(parents=True, exist_ok=True)
+            gb = 0  # Gigabytes of cached images
+            self.img_hw0, self.img_hw = [None] * n, [None] * n
+            results = ThreadPool(NUM_THREADS).imap(self.load_image, range(n))
+            pbar = tqdm(enumerate(results), total=n)
+            for i, x in pbar:
+                if cache_images == 'disk':
+                    if not self.img_npy[i].exists():
+                        np.save(self.img_npy[i].as_posix(), x[0])
+                    gb += self.img_npy[i].stat().st_size
+                else:  # 'ram'
+                    self.imgs[i], self.img_hw0[i], self.img_hw[i] = x  # im, hw_orig, hw_resized = load_image(self, i)
+                    gb += self.imgs[i].nbytes
+                pbar.desc = f'{prefix}Caching images ({gb / 1E9:.1f}GB {cache_images})'
+            pbar.close()    
 
 if __name__ == "__main__":
-    dataset_coco = LoadImagesAndLabels4COCO('/data1/qilei_chen/DATA/coco128/images/train2017')
+    dataset_coco = LoadImagesAndLabels4COCO('/data3/qilei_chen/DATA/trans_drone/annotations/test_AW_obb.json')
