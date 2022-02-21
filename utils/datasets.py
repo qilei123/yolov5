@@ -1139,7 +1139,7 @@ class LoadImagesAndLabels4COCO(LoadImagesAndLabels):
                 boxes.append(box)
 
                 seg = []
-                seg.append(ann['category_id']-1)
+                #seg.append(ann['category_id']-1)
                 for coord_index,coord in enumerate(ann['segmentation'][0]):
                     if coord_index%2==1:
                         seg.append([ann['segmentation'][0][coord_index-1]/img_width,coord/img_height])
