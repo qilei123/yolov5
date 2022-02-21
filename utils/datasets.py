@@ -1133,13 +1133,13 @@ class LoadImagesAndLabels4COCO(LoadImagesAndLabels):
             segs = []
             for ann in anns:
                 
-                box = [ann['category_id'],
+                box = [ann['category_id']-1,
                         ann['bbox'][0]/img_width,ann['bbox'][1]/img_height,
                         ann['bbox'][2]/img_width,ann['bbox'][3]/img_height]
                 boxes.append(box)
 
                 seg = []
-                seg.append(ann['category_id'])
+                seg.append(ann['category_id']-1)
                 for coord_index,coord in enumerate(ann['segmentation'][0]):
                     if coord_index%2==0:
                         seg.append(coord/img_width)
