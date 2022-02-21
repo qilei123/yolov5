@@ -102,7 +102,19 @@ def create_dataloader(path, imgsz, batch_size, stride, single_cls=False, hyp=Non
         LOGGER.warning('WARNING: --rect is incompatible with DataLoader shuffle, setting shuffle=False')
         shuffle = False
     with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
-        dataset = LoadImagesAndLabels(path, imgsz, batch_size,
+        if path.endswith('.json'):
+            dataset = LoadImagesAndLabels4COCO(path, imgsz, batch_size,
+                                      augment=augment,  # augmentation
+                                      hyp=hyp,  # hyperparameters
+                                      rect=rect,  # rectangular batches
+                                      cache_images=cache,
+                                      single_cls=single_cls,
+                                      stride=int(stride),
+                                      pad=pad,
+                                      image_weights=image_weights,
+                                      prefix=prefix)
+        else:
+            dataset = LoadImagesAndLabels(path, imgsz, batch_size,
                                       augment=augment,  # augmentation
                                       hyp=hyp,  # hyperparameters
                                       rect=rect,  # rectangular batches
