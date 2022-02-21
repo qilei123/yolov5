@@ -1124,10 +1124,7 @@ class LoadImagesAndLabels4COCO(LoadImagesAndLabels):
 
             img = coco.loadImgs([ImgId])[0]
             
-            self.img_files.append(os.path.join(images_root,img['file_name']))
-            
             img_width,img_height = img['width'],img['height']
-            self.shapes.append((img_width,img_height))
 
             annIds =  coco.getAnnIds(ImgId)
             anns = coco.loadAnns(annIds)
@@ -1150,8 +1147,11 @@ class LoadImagesAndLabels4COCO(LoadImagesAndLabels):
                         seg.append(coord/img_height)
                 segs.append(seg)
 
-            self.labels.append(np.array(boxes, dtype=np.float64))
-            self.segments.append(np.array(segs, dtype=np.float64))
+            if len(boxes)>0:
+                self.shapes.append((img_width,img_height))
+                self.img_files.append(os.path.join(images_root,img['file_name']))
+                self.labels.append(np.array(boxes, dtype=np.float64))
+                self.segments.append(np.array(segs, dtype=np.float64))
 
         # Read cache
         #[cache.pop(k) for k in ('hash', 'version', 'msgs')]  # remove items
