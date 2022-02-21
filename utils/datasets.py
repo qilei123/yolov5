@@ -1141,16 +1141,16 @@ class LoadImagesAndLabels4COCO(LoadImagesAndLabels):
                 seg = []
                 seg.append(ann['category_id']-1)
                 for coord_index,coord in enumerate(ann['segmentation'][0]):
-                    if coord_index%2==0:
-                        seg.append(coord/img_width)
-                    else:
-                        seg.append(coord/img_height)
+                    if coord_index%2==1:
+                        seg.append([ann['segmentation'][0][coord_index-1]/img_width,coord/img_height])
+                    #else:
+                    #    seg.append(coord/img_height)
                 segs.append(seg)
 
             if len(boxes)>0:
                 self.shapes.append((img_width,img_height))
                 if 'Wide' in img['file_name']:
-                    img['file_name'] = img['file_name'].replace('andover','andover_wide')
+                    img['file_name'] = img['file_name'].replace('andover','andover_wide')# this is for trans_drone only
                 self.img_files.append(os.path.join(images_root,img['file_name']))
                 self.labels.append(np.array(boxes, dtype=np.float64))
                 self.segments.append(np.array(segs, dtype=np.float64))
