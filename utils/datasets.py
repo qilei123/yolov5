@@ -1168,3 +1168,7 @@ def dataset_stats(path='coco128.yaml', autodownload=False, verbose=False, profil
     if verbose:
         print(json.dumps(stats, indent=2, sort_keys=False))
     return stats
+
+
+if __name__ == "__main__":
+    dataset_coco = LoadImagesAndLabels4COCO('/data1/qilei_chen/DATA/coco128/images/train2017')
