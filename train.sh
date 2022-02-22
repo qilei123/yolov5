@@ -1,0 +1,1 @@
+python train.py --img 640 --batch 8 --epochs 3 --data trans_drone_cat3.yaml --weights yolov5s.pt --project /data3/qilei_chen/work_model_dirs/yolov5/trans_drone_cat3/yolov5s
