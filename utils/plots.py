@@ -215,7 +215,8 @@ def plot_images(images, targets, paths=None, fname='images.jpg', names=None, max
             annotator.text((x + 5, y + 5 + h), text=Path(paths[i]).name[:40], txt_color=(220, 220, 220))  # filenames
         if len(targets) > 0:
             ti = targets[targets[:, 0] == i]  # image targets
-            boxes = xywh2xyxy(ti[:, 2:6]).T
+            #boxes = xywh2xyxy(ti[:, 2:6]).T
+            boxes = xywh2xyxy1(ti[:, 2:6]).T
             classes = ti[:, 1].astype('int')
             labels = ti.shape[1] == 6  # labels if no conf column
             conf = None if labels else ti[:, 6]  # check for confidence presence (label vs pred)
@@ -355,8 +356,7 @@ def plot_labels(labels, names=(), save_dir=Path('')):
 
     # rectangles
     labels[:, 1:3] = 0.5  # center
-    #labels[:, 1:] = xywh2xyxy(labels[:, 1:]) * 2000
-    labels[:, 1:] = xywh2xyxy1(labels[:, 1:]) * 2000
+    labels[:, 1:] = xywh2xyxy(labels[:, 1:]) * 2000
     img = Image.fromarray(np.ones((2000, 2000, 3), dtype=np.uint8) * 255)
     for cls, *box in labels[:1000]:
         ImageDraw.Draw(img).rectangle(box, width=1, outline=colors(cls))  # plot
