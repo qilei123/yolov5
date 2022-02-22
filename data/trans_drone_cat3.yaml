@@ -11,7 +11,7 @@
 path: /data3/qilei_chen/DATA/trans_drone  # dataset root dir
 train: annotations/train_AW_obb.json  # train annotations (relative to 'path') 
 val: annotations/test_AW_obb.json  # val annotations (relative to 'path') 
-test:  # test images (optional)
+test: annotations/test_AW_obb.json  # test images (optional)
 
 # Classes
 nc: 3  # number of classes
