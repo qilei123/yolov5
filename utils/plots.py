@@ -234,7 +234,7 @@ def plot_images(images, targets, paths=None, fname='images.jpg', names=None, max
                 cls = names[cls] if names else cls
                 if labels or conf[j] > 0.25:  # 0.25 conf thresh
                     label = f'{cls}' if labels else f'{cls} {conf[j]:.1f}'
-                    annotator.box_label(box, label, color=color)
+                    #annotator.box_label(box, label, color=color)
     annotator.im.save(fname)  # save
 
 
