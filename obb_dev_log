@@ -4,6 +4,6 @@ implement xywh2xyxy1, take (xy) as the left-top point
     replace xywh2xyxy with xywh2xyxy1 in line 218 of plots.py
     replace xywh2xyxy with xywh2xyxy1 in line 229 of val.py
 
-try using mosaic9 with 9 images
+try to use mosaic9
 
 Next step: implement oob head
