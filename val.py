@@ -225,8 +225,7 @@ def run(data,
 
             # Evaluate
             if nl:
-                #tbox = xywh2xyxy(labels[:, 1:5])  # target boxes
-                tbox = xywh2xyxy1(labels[:, 1:5])  # target boxes
+                tbox = xywh2xyxy(labels[:, 1:5])
                 scale_coords(im[si].shape[1:], tbox, shape, shapes[si][1])  # native-space labels
                 labelsn = torch.cat((labels[:, 0:1], tbox), 1)  # native-space labels
                 correct = process_batch(predn, labelsn, iouv)
