@@ -1094,8 +1094,10 @@ class LoadImagesAndLabels4COCO(LoadImagesAndLabels):
             for ann in anns:
                 
                 box = [ann['category_id']-1,
-                        ann['bbox'][0]/img_width,ann['bbox'][1]/img_height,
-                        ann['bbox'][2]/img_width,ann['bbox'][3]/img_height]
+                        (ann['bbox'][0]-ann['bbox'][2]/2)/img_width,
+                        (ann['bbox'][1]-ann['bbox'][3]/2)/img_height,
+                        ann['bbox'][2]/img_width,
+                        ann['bbox'][3]/img_height]
                 boxes.append(box)
 
                 seg = []

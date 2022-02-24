@@ -216,7 +216,7 @@ def plot_images(images, targets, paths=None, fname='images.jpg', names=None, max
         if len(targets) > 0:
             ti = targets[targets[:, 0] == i]  # image targets
             #boxes = xywh2xyxy(ti[:, 2:6]).T
-            boxes = xywh2xyxy1(ti[:, 2:6]).T
+            boxes = xywh2xyxy(ti[:, 2:6]).T
             classes = ti[:, 1].astype('int')
             labels = ti.shape[1] == 6  # labels if no conf column
             conf = None if labels else ti[:, 6]  # check for confidence presence (label vs pred)
