@@ -488,7 +488,7 @@ def parse_opt(known=False):
     parser.add_argument('--save-period', type=int, default=-1, help='Save checkpoint every x epochs (disabled if < 1)')
     parser.add_argument('--local_rank', type=int, default=-1, help='DDP parameter, do not modify')
 
-    parser.add_argument('--mosaic_n', type=bool, default=True,action='store_false',help='choose to use mosaic 4 images or 9 images')
+    parser.add_argument('--mosaic_n', type=bool, default=True, help='choose to use mosaic 4 images or 9 images')
 
     # Weights & Biases arguments
     parser.add_argument('--entity', default=None, help='W&B: Entity')
