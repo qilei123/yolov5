@@ -487,6 +487,8 @@ def parse_opt(known=False):
     parser.add_argument('--save-period', type=int, default=-1, help='Save checkpoint every x epochs (disabled if < 1)')
     parser.add_argument('--local_rank', type=int, default=-1, help='DDP parameter, do not modify')
 
+    parser.add_argument('--mosaic_n', type=bool, default=True,action='store_false',help='choose to use mosaic 4 images or 9 images')
+
     # Weights & Biases arguments
     parser.add_argument('--entity', default=None, help='W&B: Entity')
     parser.add_argument('--upload_dataset', nargs='?', const=True, default=False, help='W&B: Upload data, "val" option')
@@ -571,7 +573,8 @@ def main(opt, callbacks=Callbacks()):
                 'perspective': (0, 0.0, 0.001),  # image perspective (+/- fraction), range 0-0.001
                 'flipud': (1, 0.0, 1.0),  # image flip up-down (probability)
                 'fliplr': (0, 0.0, 1.0),  # image flip left-right (probability)
-                'mosaic': (1, 0.0, 1.0),  # image mixup (probability)
+                'mosaic': (1, 0.0, 1.0),  # image mosaic (probability)
+                'mosaic_n': opt.mosaic_n,  # 4 images is True  or 9 images mosaic is False
                 'mixup': (1, 0.0, 1.0),  # image mixup (probability)
                 'copy_paste': (1, 0.0, 1.0)}  # segment copy-paste (probability)
 
