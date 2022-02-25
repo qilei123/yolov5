@@ -219,7 +219,7 @@ def train(hyp,  # path/to/hyp.yaml or hyp dictionary
     if opt.sync_bn and cuda and RANK != -1:
         model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model).to(device)
         LOGGER.info('Using SyncBatchNorm()')
-
+    hyp['mosaic_n'] = opt.mosaic_n
     # Trainloader
     train_loader, dataset = create_dataloader(train_path, imgsz, batch_size // WORLD_SIZE, gs, single_cls,
                                               hyp=hyp, augment=True, cache=None if opt.cache == 'val' else opt.cache,
@@ -537,7 +537,7 @@ def main(opt, callbacks=Callbacks()):
         torch.cuda.set_device(LOCAL_RANK)
         device = torch.device('cuda', LOCAL_RANK)
         dist.init_process_group(backend="nccl" if dist.is_nccl_available() else "gloo")
-
+    opt.hyp
     # Train
     if not opt.evolve:
         train(opt.hyp, opt, device, callbacks)
