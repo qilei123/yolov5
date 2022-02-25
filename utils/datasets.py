@@ -29,6 +29,7 @@ from tqdm import tqdm
 
 import sys
 sys.path.append('/data1/qilei_chen/DEVELOPMENTS/yolov5')
+sys.path.append('/home/qilei/DEVELOPMENT/yolov5')
 from pycocotools.coco import COCO
 
 from utils.augmentations import Albumentations, augment_hsv, copy_paste, letterbox, mixup, random_perspective
