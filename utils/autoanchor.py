@@ -163,3 +163,7 @@ def kmean_anchors(dataset='./data/coco128.yaml', n=9, img_size=640, thr=4.0, gen
                 print_results(k, verbose)
 
     return print_results(k)
+
+
+if __name__ == "__main__":
+    kmean_anchors(dataset = './data/trans_drone_cat3.yaml')
