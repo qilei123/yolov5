@@ -2,6 +2,7 @@
 """
 AutoAnchor utils
 """
+import setpath
 
 import random
 
@@ -11,9 +12,6 @@ import yaml
 from tqdm import tqdm
 
 from utils.general import LOGGER, colorstr, emojis
-
-import setpath
-
 
 PREFIX = colorstr('AutoAnchor: ')
 
