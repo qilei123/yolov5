@@ -3,6 +3,7 @@
 AutoAnchor utils
 """
 import setpath
+import os
 
 import random
 
@@ -111,8 +112,11 @@ def kmean_anchors(dataset='./data/coco128.yaml', n=9, img_size=640, thr=4.0, gen
     if isinstance(dataset, str):  # *.yaml file
         with open(dataset, errors='ignore') as f:
             data_dict = yaml.safe_load(f)  # model dict
-        from utils.datasets import LoadImagesAndLabels
-        dataset = LoadImagesAndLabels(data_dict['train'], augment=True, rect=True)
+        from utils.datasets import LoadImagesAndLabels,LoadImagesAndLabels4COCO
+        if 'trans_drone_cat3' in data_dict['train']:
+            dataset = LoadImagesAndLabels(os.path.join(data_dict['path'],data_dict['train']), augment=True, rect=True)
+        else:
+            dataset = LoadImagesAndLabels(data_dict['train'], augment=True, rect=True)
 
     # Get label wh
     shapes = img_size * dataset.shapes / dataset.shapes.max(1, keepdims=True)
