@@ -8,4 +8,6 @@ implement xywh2xyxy1, take (xy) as the left-top point
 
 add mosaic9 in options
 
+use kmean_anchors to get the anchors for dataset trans_drone
+
 Next step: implement oob head
