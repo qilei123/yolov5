@@ -113,7 +113,7 @@ def kmean_anchors(dataset='./data/coco128.yaml', n=9, img_size=640, thr=4.0, gen
         with open(dataset, errors='ignore') as f:
             data_dict = yaml.safe_load(f)  # model dict
         from utils.datasets import LoadImagesAndLabels,LoadImagesAndLabels4COCO
-        if 'trans_drone_cat3' in data_dict['train']:
+        if 'obb' in data_dict['train']:
             dataset = LoadImagesAndLabels(os.path.join(data_dict['path'],data_dict['train']), augment=True, rect=True)
         else:
             dataset = LoadImagesAndLabels(data_dict['train'], augment=True, rect=True)
