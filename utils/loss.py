@@ -189,6 +189,7 @@ class ComputeLoss:
             print(p[i].shape)
             print(torch.tensor(p[i].shape)[[3, 2, 3, 2]].shape)
             print(gain.shape)
+            print(targets.shape)
             print(targets)
             # Match targets to anchors
             t = targets * gain
