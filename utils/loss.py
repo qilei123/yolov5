@@ -216,7 +216,7 @@ class ComputeLoss:
             else:
                 t = targets[0]
                 offsets = 0
-
+            print(t.shape)
             # Define
             b, c = t[:, :2].long().T  # image, class
             print(t.shape)
