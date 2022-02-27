@@ -186,6 +186,8 @@ class ComputeLoss:
         for i in range(self.nl):
             anchors = self.anchors[i]
             gain[2:6] = torch.tensor(p[i].shape)[[3, 2, 3, 2]]  # xyxy gain
+            print(torch.tensor(p[i].shape)[[3, 2, 3, 2]].shape)
+            print(gain.shape)
 
             # Match targets to anchors
             t = targets * gain
