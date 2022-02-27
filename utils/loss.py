@@ -210,6 +210,7 @@ class ComputeLoss:
 
             # Define
             b, c = t[:, :2].long().T  # image, class
+            print(t.shape)
             print(t)
             exit()
             gxy = t[:, 2:4]  # grid xy
