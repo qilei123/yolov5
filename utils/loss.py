@@ -192,6 +192,7 @@ class ComputeLoss:
             gain[2:6] = torch.tensor(p[i].shape)[[3, 2, 3, 2]]  # xyxy gain
             print(p[i].shape)
             print(torch.tensor(p[i].shape)[[3, 2, 3, 2]].shape)
+            print(gain)
             print(gain.shape)
             print(targets.shape)
             print(targets)
