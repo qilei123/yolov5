@@ -168,7 +168,7 @@ class ComputeLoss:
 
     def build_targets(self, p, targets):
         print(p[0].shape)
-        exit(0)
+        
         # Build targets for compute_loss(), input targets(image,class,x,y,w,h)
         na, nt = self.na, targets.shape[0]  # number of anchors, targets
         tcls, tbox, indices, anch = [], [], [], []
@@ -209,6 +209,7 @@ class ComputeLoss:
 
             # Define
             b, c = t[:, :2].long().T  # image, class
+            print(t)
             gxy = t[:, 2:4]  # grid xy
             gwh = t[:, 4:6]  # grid wh
             gij = (gxy - offsets).long()
