@@ -233,7 +233,9 @@ class ComputeLoss:
             tbox.append(torch.cat((gxy - gij, gwh), 1))  # box
             anch.append(anchors[a])  # anchors
             tcls.append(c)  # class
-            print(tbox)
-            print(tbox.shape)
+            print(tbox[i])
+            print(tbox[i].shape)
+
+        exit(0)
             
         return tcls, tbox, indices, anch
