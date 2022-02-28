@@ -189,7 +189,7 @@ class ComputeLoss:
 
         for i in range(self.nl):
             anchors = self.anchors[i]
-            print("anchor layer:"+self.nl)
+            print("anchor layer:"+str(self.nl))
             print(anchors)
             gain[2:6] = torch.tensor(p[i].shape)[[3, 2, 3, 2]]  # xyxy gain
             print(p[i].shape)
