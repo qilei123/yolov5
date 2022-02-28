@@ -221,7 +221,7 @@ class ComputeLoss:
             b, c = t[:, :2].long().T  # image, class
             print(t.shape)
             print(t)
-            exit()
+            
             gxy = t[:, 2:4]  # grid xy
             gwh = t[:, 4:6]  # grid wh
             gij = (gxy - offsets).long()
@@ -233,5 +233,7 @@ class ComputeLoss:
             tbox.append(torch.cat((gxy - gij, gwh), 1))  # box
             anch.append(anchors[a])  # anchors
             tcls.append(c)  # class
-
+            print(tbox)
+            print(tbox.shape)
+            
         return tcls, tbox, indices, anch
