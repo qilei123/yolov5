@@ -167,20 +167,15 @@ class ComputeLoss:
         return (lbox + lobj + lcls) * bs, torch.cat((lbox, lobj, lcls)).detach()
 
     def build_targets(self, p, targets):
-        print(p[0].shape)
-        print(p[1].shape)
-        print(p[2].shape)
         # Build targets for compute_loss(), input targets(image,class,x,y,w,h)
         na, nt = self.na, targets.shape[0]  # number of anchors, targets
         tcls, tbox, indices, anch = [], [], [], []
         gain = torch.ones(7, device=targets.device)  # normalized to gridspace gain
-        print(targets.shape)
+
         ai = torch.arange(na, device=targets.device).float().view(na, 1).repeat(1, nt)  # same as .repeat_interleave(nt)
-        print(ai.shape)
-        targets = torch.cat((targets.repeat(na, 1, 1), ai[:, :, None]), 2)  # append anchor indices
-        print("see here")
-        print(targets.shape)
         print(targets)
+        targets = torch.cat((targets.repeat(na, 1, 1), ai[:, :, None]), 2)  # append anchor indices
+
         g = 0.5  # bias
         off = torch.tensor([[0, 0],
                             [1, 0], [0, 1], [-1, 0], [0, -1],  # j,k,l,m
@@ -189,15 +184,9 @@ class ComputeLoss:
 
         for i in range(self.nl):
             anchors = self.anchors[i]
-            print("anchor layer:"+str(self.nl))
-            print(anchors)
+
             gain[2:6] = torch.tensor(p[i].shape)[[3, 2, 3, 2]]  # xyxy gain
-            print(p[i].shape)
-            print(torch.tensor(p[i].shape)[[3, 2, 3, 2]].shape)
-            print(gain)
-            print(gain.shape)
-            print(targets.shape)
-            print(targets)
+
             # Match targets to anchors
             t = targets * gain
             if nt:
@@ -218,11 +207,9 @@ class ComputeLoss:
             else:
                 t = targets[0]
                 offsets = 0
-            print(t.shape)
+
             # Define
             b, c = t[:, :2].long().T  # image, class
-            print(t.shape)
-            print(t)
             
             gxy = t[:, 2:4]  # grid xy
             gwh = t[:, 4:6]  # grid wh
@@ -235,9 +222,8 @@ class ComputeLoss:
             tbox.append(torch.cat((gxy - gij, gwh), 1))  # box
             anch.append(anchors[a])  # anchors
             tcls.append(c)  # class
-            print(tbox[i])
-            print(tbox[i].shape)
-
+        print(tcls)
+        print(tbox)
         exit(0)
             
         return tcls, tbox, indices, anch
