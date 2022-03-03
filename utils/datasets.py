@@ -1113,6 +1113,7 @@ class LoadImagesAndLabels4COCO(LoadImagesAndLabels):
                         seg.append([ann['segmentation'][0][coord_index-1]/img_width,coord/img_height])
                     #else:
                     #    seg.append(coord/img_height)
+                print(seg)
                 segs.append(seg)
 
             if len(boxes)>0:
