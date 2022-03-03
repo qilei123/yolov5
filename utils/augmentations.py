@@ -267,14 +267,14 @@ def random_perspective_segs(im, targets=(), segments=(), degrees=10, translate=.
         new = np.zeros((n, 4))
         new_segs = np.zeros((n,8))
         if use_segments:  # warp segments
-            segments = resample_segments(segments)  # upsample
+            segments = resample_segments(segments,8)  # upsample
             for i, segment in enumerate(segments):
                 xy = np.ones((len(segment), 3))
                 xy[:, :2] = segment
                 #print(segment[0])
                 xy = xy @ M.T  # transform
                 xy = xy[:, :2] / xy[:, 2:3] if perspective else xy[:, :2]  # perspective rescale or affine
-
+                
                 # clip
                 new[i] = segment2box(xy, width, height)
                 #print(xy.shape)
