@@ -214,7 +214,7 @@ def random_perspective_segs(im, targets=(), segments=(), degrees=10, translate=.
                        border=(0, 0)):
     # torchvision.transforms.RandomAffine(degrees=(-10, 10), translate=(0.1, 0.1), scale=(0.9, 1.1), shear=(-10, 10))
     # targets = [cls, xyxy]
-
+    print(perspective)
     height = im.shape[0] + border[0] * 2  # shape(h,w,c)
     width = im.shape[1] + border[1] * 2
 
@@ -267,11 +267,7 @@ def random_perspective_segs(im, targets=(), segments=(), degrees=10, translate=.
         new = np.zeros((n, 4))
         new_segs = np.zeros((n,8))
         if use_segments:  # warp segments
-            print(segments)
-            print('********')
             segments = resample_segments(segments,4)  # upsample
-            print(segments)
-            print('------------')
             for i, segment in enumerate(segments):
                 xy = np.ones((len(segment), 3))
                 xy[:, :2] = segment
