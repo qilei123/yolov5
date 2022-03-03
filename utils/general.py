@@ -886,6 +886,26 @@ def increment_path(path, exist_ok=False, sep='', mkdir=False):
         path.mkdir(parents=True, exist_ok=True)  # make directory
     return path
 
+pi = 3.141592
+
+def poly2obb(polys):
+    num_points = polys.shape[-1] // 2
+    polys_np = polys.reshape(-1, num_points, 2)
+    obboxes = []
+    for poly in polys:
+        (x, y), (w, h), angle = cv2.minAreaRect(poly)
+        angle = -angle
+        theta = angle / 180 * pi
+        obboxes.append([x, y, w, h, theta])
+
+    if not obboxes:
+        obboxes = np.zeros((0, 5))
+    else:
+        obboxes = np.array(obboxes)
+
+    #obboxes = regular_obb(obboxes)
+    #obboxes = obboxes.reshape(*order, 5)
+    return obboxes
 
 # Variables
 NCOLS = 0 if is_docker() else shutil.get_terminal_size().columns  # terminal window size for tqdm

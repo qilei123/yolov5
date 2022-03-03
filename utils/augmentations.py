@@ -276,8 +276,8 @@ def random_perspective_segs(im, targets=(), segments=(), degrees=10, translate=.
                 # clip
                 new_segs[i] = xy[:,:2]
                 new[i] = segment2box(xy, width, height)
-                print(new[i])
-                cv2.rectangle(im,(int(new[i][0]),int(new[i][1])),(int(new[i][2]),int(new[i][3])),(0,255,0),2)
+                #debug print(new[i])
+                #cv2.rectangle(im,(int(new[i][0]),int(new[i][1])),(int(new[i][2]),int(new[i][3])),(0,255,0),2)
                 #print(xy.shape)
         else:  # warp boxes
             xy = np.ones((n * 4, 3))
@@ -298,12 +298,10 @@ def random_perspective_segs(im, targets=(), segments=(), degrees=10, translate=.
         i = box_candidates(box1=targets[:, 1:5].T * s, box2=new.T, area_thr=0.01 if use_segments else 0.10)
         targets = targets[i]
         targets[:, 1:5] = new[i]
-
-    #debug
-    cv2.imwrite('/home/qilei/DATASETS/TEMP/debug.jpg',im)
-
-
-    return im, targets
+        targets_seg = new_segs[i]
+        
+    #debug cv2.imwrite('/home/qilei/DATASETS/TEMP/debug.jpg',im)
+    return im, targets,targets_seg
 
 def copy_paste(im, labels, segments, p=0.5):
     # Implement Copy-Paste augmentation https://arxiv.org/abs/2012.07177, labels as nx5 np.array(cls, xyxy)
