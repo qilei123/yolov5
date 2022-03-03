@@ -268,6 +268,7 @@ def random_perspective_segs(im, targets=(), segments=(), degrees=10, translate=.
         new_segs = np.zeros((n,8))
         if use_segments:  # warp segments
             print(segments)
+            print('********')
             segments = resample_segments(segments,4)  # upsample
             print(segments)
             print('------------')
