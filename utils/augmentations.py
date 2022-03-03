@@ -267,7 +267,10 @@ def random_perspective_segs(im, targets=(), segments=(), degrees=10, translate=.
         new = np.zeros((n, 4))
         new_segs = np.zeros((n,8))
         if use_segments:  # warp segments
-            segments = resample_segments(segments,8)  # upsample
+            print(segments)
+            segments = resample_segments(segments,4)  # upsample
+            print(segments)
+            print('------------')
             for i, segment in enumerate(segments):
                 xy = np.ones((len(segment), 3))
                 xy[:, :2] = segment
@@ -320,8 +323,7 @@ def copy_paste(im, labels, segments, p=0.5):
         result = cv2.flip(result, 1)  # augment segments (flip left-right)
         i = result > 0  # pixels to replace
         # i[:, :] = result.max(2).reshape(h, w, 1)  # act over ch
-        im[i] = result[i]  # 
-        cv2.imwrite('/home/qilei/DATASETS/TEMP/debug.jpg', im)  # debug
+        im[i] = result[i]  # cv2.imwrite('debug.jpg', im)  # debug
 
     return im, labels, segments
 
