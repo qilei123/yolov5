@@ -889,7 +889,7 @@ def increment_path(path, exist_ok=False, sep='', mkdir=False):
 pi = 3.141592
 
 def poly2obb(polys):
-    num_points = polys.shape[-1] // 2
+    num_points = polys.shape[1] // 2
     polys_np = polys.reshape(-1, num_points, 2)
     obboxes = []
     for poly in polys_np:
