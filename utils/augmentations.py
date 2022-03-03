@@ -271,7 +271,7 @@ def random_perspective_segs(im, targets=(), segments=(), degrees=10, translate=.
             for i, segment in enumerate(segments):
                 xy = np.ones((len(segment), 3))
                 xy[:, :2] = segment
-                print(segment.shape)
+                print(segment[0])
                 xy = xy @ M.T  # transform
                 xy = xy[:, :2] / xy[:, 2:3] if perspective else xy[:, :2]  # perspective rescale or affine
 
