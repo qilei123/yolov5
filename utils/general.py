@@ -890,7 +890,9 @@ pi = 3.141592
 
 def poly2obb(polys):
     num_points = polys.shape[1] // 2
+    print(polys)
     polys_np = polys.reshape(-1, num_points, 2)
+    print(polys_np)
     obboxes = []
     for poly in polys_np:
         print(poly)
