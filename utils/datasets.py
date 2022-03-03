@@ -1339,7 +1339,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
 
 if __name__ == "__main__":
     hyp = yaml.safe_load(open('data/hyps/hyp.scratch.yaml'))
-    print(hyp)
+
     dataset_coco = LoadImagesAndLabels4OBB('/home/qilei/DATASETS/trans_drone/andover_worster/annotations/test_AW_obb.json',augment = True,hyp=hyp)
     _,label_outs,_,_ = dataset_coco.__getitem__(11)
     #print(label_outs)
