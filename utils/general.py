@@ -646,7 +646,7 @@ def segments2boxes(segments):
     return xyxy2xywh(np.array(boxes))  # cls, xywh
 
 
-def resample_segments(segments, n=1000):
+def resample_segments(segments, n=4):
     # Up-sample an (n,2) segment
     for i, s in enumerate(segments):
         print(s)
