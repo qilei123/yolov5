@@ -889,14 +889,11 @@ def increment_path(path, exist_ok=False, sep='', mkdir=False):
 pi = 3.141592
 
 def poly2obb(polys):
-    num_points = polys.shape[1] // 2
-    print(polys)
-    polys_np = polys.reshape(-1, num_points, 2)
-    print(polys_np)
+
     obboxes = []
     for poly in polys:
         print(poly)
-        (x, y), (w, h), angle = cv2.minAreaRect(poly)
+        (x, y), (w, h), angle = cv2.minAreaRect([(0,1),(1,2),(2,0),(1,0)])
         angle = -angle
         theta = angle / 180 * pi
         obboxes.append([x, y, w, h, theta])
