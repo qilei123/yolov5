@@ -1198,6 +1198,7 @@ class LoadImagesAndLabels4COCO(LoadImagesAndLabels):
             pbar.close()    
 
 if __name__ == "__main__":
-    dataset_coco = LoadImagesAndLabels4COCO('/home/qilei/DATASETS/trans_drone/andover_worster/annotations/test_AW_obb.json',augment = True)
+    hyp = yaml.safe_load('data/hyps/hyp.scratch.yaml')
+    dataset_coco = LoadImagesAndLabels4COCO('/home/qilei/DATASETS/trans_drone/andover_worster/annotations/test_AW_obb.json',augment = True,hyp=hyp)
     _,label_outs,_,_ = dataset_coco.__getitem__(11)
     print(label_outs)
