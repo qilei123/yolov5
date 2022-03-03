@@ -277,7 +277,7 @@ def random_perspective_segs(im, targets=(), segments=(), degrees=10, translate=.
                 new_segs[i] = xy[:,:2]
                 new[i] = segment2box(xy, width, height)
                 print(new[i])
-                cv2.rectangle(im,(new[i][0],new[i][1]),(new[i][2],new[i][3]),(0,255,0),2)
+                cv2.rectangle(im,(int(new[i][0]),int(new[i][1])),(int(new[i][2]),int(new[i][3])),(0,255,0),2)
                 #print(xy.shape)
         else:  # warp boxes
             xy = np.ones((n * 4, 3))
