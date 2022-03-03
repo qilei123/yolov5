@@ -300,7 +300,7 @@ def random_perspective_segs(im, targets=(), segments=(), degrees=10, translate=.
         targets[:, 1:5] = new[i]
 
     #debug
-    cv2.imwrite('',im)
+    cv2.imwrite('/home/qilei/DATASETS/TEMP/debug.jpg',im)
 
 
     return im, targets
