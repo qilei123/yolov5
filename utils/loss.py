@@ -166,15 +166,14 @@ class ComputeLoss:
 
         return (lbox + lobj + lcls) * bs, torch.cat((lbox, lobj, lcls)).detach()
 
-    def build_targets(self, p, targets):# this function generates positive targets on the feature maps with different size
+    def build_targets(self, p, targets):# this function generates positive anchor targets' positions on the feature maps with different size
         # Build targets for compute_loss(), input targets(image,class,x,y,w,h)
         na, nt = self.na, targets.shape[0]  # number of anchors, targets
         tcls, tbox, indices, anch = [], [], [], []
         gain = torch.ones(7, device=targets.device)  # normalized to gridspace gain
 
         ai = torch.arange(na, device=targets.device).float().view(na, 1).repeat(1, nt)  # same as .repeat_interleave(nt)
-        print(targets.shape)
-        print(targets)
+
         targets = torch.cat((targets.repeat(na, 1, 1), ai[:, :, None]), 2)  # append anchor indices
 
         g = 0.5  # bias
@@ -187,7 +186,7 @@ class ComputeLoss:
             anchors = self.anchors[i]
 
             gain[2:6] = torch.tensor(p[i].shape)[[3, 2, 3, 2]]  # xyxy gain
-            print(gain)
+
             # Match targets to anchors
             t = targets * gain
             if nt:
@@ -223,11 +222,10 @@ class ComputeLoss:
             tbox.append(torch.cat((gxy - gij, gwh), 1))  # box
             anch.append(anchors[a])  # anchors
             tcls.append(c)  # class
-            print(tbox[i].shape)
-            print(tcls[i])
-            print(tbox[i])
-            print(indices[i])
-            print(anch[i])
-        exit(0)
+
             
-        return tcls, tbox, indices, anch
+        return tcls, tbox , indices, anch 
+        #tcls is the categories, 
+        #tbox is gtbox与三个负责预测的网格的xy坐标偏移量，gtbox的宽高, 
+        #indices (b表示当前gtbox属于该batch内第几张图片，a表示gtbox与anchors的对应关系，负责预测的网格纵坐标，负责预测的网格横坐标)
+        #anch (最匹配的anchors)
