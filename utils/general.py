@@ -892,7 +892,7 @@ def poly2obb(polys):
 
     obboxes = []
     for poly in polys:
-        print(poly.type)
+        print(poly.shape)
         (x, y), (w, h), angle = cv2.minAreaRect(poly)
         angle = -angle
         theta = angle / 180 * pi
