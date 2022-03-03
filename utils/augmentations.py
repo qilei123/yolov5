@@ -277,7 +277,7 @@ def random_perspective_segs(im, targets=(), segments=(), degrees=10, translate=.
 
                 # clip
                 new[i] = segment2box(xy, width, height)
-                print(xy.shape)
+                #print(xy.shape)
         else:  # warp boxes
             xy = np.ones((n * 4, 3))
             xy[:, :2] = targets[:, [1, 2, 3, 4, 1, 4, 3, 2]].reshape(n * 4, 2)  # x1y1, x2y2, x1y2, x2y1
