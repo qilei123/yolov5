@@ -268,7 +268,6 @@ def random_perspective_segs(im, targets=(), segments=(), degrees=10, translate=.
         if use_segments:  # warp segments
             segments = resample_segments(segments,4)  # upsample
             for i, segment in enumerate(segments):
-                print(segment)
                 xy = np.ones((len(segment), 3))
                 xy[:, :2] = segment
                 #print(segment[0])
@@ -277,7 +276,8 @@ def random_perspective_segs(im, targets=(), segments=(), degrees=10, translate=.
                 # clip
                 new_segs[i] = xy[:,:2]
                 new[i] = segment2box(xy, width, height)
-                cv2.drawContours(im, new_segs[i], -1, (255, 255, 255), cv2.FILLED)
+                print(new[i])
+                cv2.drawContours(im, [new[i].astype(np.int32)], -1, (255, 255, 255), cv2.FILLED)
                 #print(xy.shape)
         else:  # warp boxes
             xy = np.ones((n * 4, 3))
