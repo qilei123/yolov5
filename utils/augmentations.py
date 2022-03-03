@@ -273,14 +273,11 @@ def random_perspective_segs(im, targets=(), segments=(), degrees=10, translate=.
                 xy[:, :2] = segment
                 #print(segment[0])
                 xy = xy @ M.T  # transform
-                print(xy)
                 xy = xy[:, :2] / xy[:, 2:3] if perspective else xy[:, :2]  # perspective rescale or affine
-                
                 # clip
                 new_segs[i] = xy[:,:2]
-
-                print(xy)
                 new[i] = segment2box(xy, width, height)
+                cv2.drawContours(im, new_segs[i], -1, (255, 255, 255), cv2.FILLED)
                 #print(xy.shape)
         else:  # warp boxes
             xy = np.ones((n * 4, 3))
@@ -301,6 +298,10 @@ def random_perspective_segs(im, targets=(), segments=(), degrees=10, translate=.
         i = box_candidates(box1=targets[:, 1:5].T * s, box2=new.T, area_thr=0.01 if use_segments else 0.10)
         targets = targets[i]
         targets[:, 1:5] = new[i]
+
+    #debug
+    cv2.imwrite('',im)
+
 
     return im, targets
 
