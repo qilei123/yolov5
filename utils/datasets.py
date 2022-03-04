@@ -1262,7 +1262,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
                     segments4[:,:,1] = 1-segments4[:,:,1]
                     labels[:, 2] = 1 - labels[:, 2]
 
-
+            segments4[:,:,0] = 1-segments4[:,:,0]
             # Flip left-right
             if random.random() < hyp['fliplr']:
                 img = np.fliplr(img)
