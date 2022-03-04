@@ -1315,14 +1315,14 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
             # nl = len(labels)  # update after cutout
 
         label_boxes_out = torch.zeros((nl, 6))
-        labels_out = torch.zeros((nl, 1))
-        obbs_out = torch.zeros((nl,6))
+        #labels_out = torch.zeros((nl, 1))
+        obbs_out = torch.zeros((nl,7))
         if nl:
             obbs = poly2obb(segments4)
             label_boxes_out[:, 1:] = torch.from_numpy(labels)
-            labels_out = torch.from_numpy(labels[:,0])
-            obbs_out[:,1:] = obbs
-            obbs_out[:,0] = torch.from_numpy(labels[:,0])
+            #labels_out = torch.from_numpy(labels[:,0])
+            obbs_out[:,2:] = obbs
+            obbs_out[:,1] = torch.from_numpy(labels[:,0])
 
         # Convert
         img = img.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB

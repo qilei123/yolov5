@@ -210,8 +210,7 @@ class ComputeLoss:
 
             # Define
             b, c = t[:, :2].long().T  # image, class
-            print(b)
-            print('-----------')
+            
             gxy = t[:, 2:4]  # grid xy
             gwh = t[:, 4:6]  # grid wh
             gij = (gxy - offsets).long()
@@ -318,7 +317,8 @@ class ComputeLossOBB:
         ai = torch.arange(na, device=targets.device).float().view(na, 1).repeat(1, nt)  # same as .repeat_interleave(nt)
 
         targets = torch.cat((targets.repeat(na, 1, 1), ai[:, :, None]), 2)  # append anchor indices
-
+        #print(targets)
+        #exit(0)
         g = 0.5  # bias
         off = torch.tensor([[0, 0],
                             [1, 0], [0, 1], [-1, 0], [0, -1],  # j,k,l,m
@@ -328,21 +328,20 @@ class ComputeLossOBB:
         for i in range(self.nl):
             anchors = self.anchors[i]
 
-            gain[1:5] = torch.tensor(p[i].shape)[[3, 2, 3, 2]]  # xyxy gain
+            gain[2:6] = torch.tensor(p[i].shape)[[3, 2, 3, 2]]  # xyxy gain
 
             # Match targets to anchors
             t = targets * gain
-            #print(t)
             if nt:
                 # Matches
-                r = t[:, :, 3:5] / anchors[:, None]  # wh ratio
+                r = t[:, :, 4:6] / anchors[:, None]  # wh ratio
                 j = torch.max(r, 1 / r).max(2)[0] < self.hyp['anchor_t']  # compare
                 # j = wh_iou(anchors, t[:, 4:6]) > model.hyp['iou_t']  # iou(3,n)=wh_iou(anchors(3,2), gwh(n,2))
                 t = t[j]  # filter
 
                 # Offsets
-                gxy = t[:, 1:3]  # grid xy
-                gxi = gain[[1, 2]] - gxy  # inverse
+                gxy = t[:, 2:4]  # grid xy
+                gxi = gain[[2, 3]] - gxy  # inverse
                 j, k = ((gxy % 1 < g) & (gxy > 1)).T
                 l, m = ((gxi % 1 < g) & (gxi > 1)).T
                 j = torch.stack((torch.ones_like(j), j, k, l, m))
@@ -355,8 +354,7 @@ class ComputeLossOBB:
             # Define
             b, c = t[:, :2].long().T  # image, class
             print(b)
-            print('-----------')
-            
+            print('-------------')
             gxy = t[:, 2:4]  # grid xy
             gwh = t[:, 4:6]  # grid wh
             gij = (gxy - offsets).long()
