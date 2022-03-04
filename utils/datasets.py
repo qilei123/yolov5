@@ -1262,7 +1262,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
                     segments4[:,:,1] = 1-segments4[:,:,1]
                     labels[:, 2] = 1 - labels[:, 2]
 
-            segments4[:,:,0] = 1-segments4[:,:,0]
+            
             # Flip left-right
             if random.random() < hyp['fliplr']:
                 img = np.fliplr(img)
@@ -1281,7 +1281,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
         if nl:
             labels_out[:, 1:] = torch.from_numpy(labels)
             obbs_out = torch.from_numpy(obbs)
-        print(obbs_out)
+        
         # Convert
         img = img.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
         img = np.ascontiguousarray(img)
