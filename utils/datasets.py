@@ -1262,7 +1262,6 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
                     segments4[:,:,1] = 1-segments4[:,:,1]
                     labels[:, 2] = 1 - labels[:, 2]
 
-            
             # Flip left-right
             if random.random() < hyp['fliplr']:
                 img = np.fliplr(img)
@@ -1270,6 +1269,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
                     labels[:, 1] = 1 - labels[:, 1]
                     print(segments4)
                     segments4[:,:,0] = 1-segments4[:,:,0]
+                    print(segments4)
 
             # Cutouts
             # labels = cutout(img, labels, p=0.5)
