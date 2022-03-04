@@ -359,7 +359,7 @@ class ComputeLossOBB:
             gwh = t[:, 4:6]  # grid wh
             print(gwh)
             gtheta = t[:,6]
-            print(gtheta)
+            print(torch.unsqueeze(gtheta,1))
             gij = (gxy - offsets).long()
             gi, gj = gij.T  # grid xy indices
 
