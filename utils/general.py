@@ -907,7 +907,9 @@ def regular_obb(obboxes):
     w_regular = torch.where(w > h, w, h)
     h_regular = torch.where(w > h, h, w)
     theta_regular = torch.where(w > h, theta, theta+pi/2)
+    print(theta_regular)
     theta_regular = regular_theta(theta_regular)
+    print(theta_regular)
     return torch.stack([x, y, w_regular, h_regular, theta_regular], dim=-1)
 
 def poly2obb_org(polys):
