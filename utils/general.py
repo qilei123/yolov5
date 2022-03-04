@@ -903,7 +903,7 @@ def regular_theta(theta, mode='180', start=-pi/2):
     return theta + start
 
 def regular_obb(obboxes):
-    x, y, w, h, theta = obboxes.unbind(dim=-1)
+    x, y, w, h, theta = torch.from_numpy(obboxes).unbind(dim=-1)
     w_regular = torch.where(w > h, w, h)
     h_regular = torch.where(w > h, h, w)
     theta_regular = torch.where(w > h, theta, theta+pi/2)
