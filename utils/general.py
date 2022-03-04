@@ -630,8 +630,8 @@ def xyn2xy(x, w=640, h=640, padw=0, padh=0):
 def xy2xyn(x, w=640, h=640, clip=False, eps=0.0):
     # Convert pixel segments into normalized segments, shape (n,2)
     y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
-    y[::2] = x[::2]/w
-    y[::2] = x[::2]/w
+    y[:,0] = x[:,0]/w
+    y[:,1] = x[:,1]/h
     return y
 
 def segment2box(segment, width=640, height=640):
