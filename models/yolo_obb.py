@@ -56,10 +56,11 @@ class DetectOBB(nn.Module):
             if not self.training:  # inference
                 if self.onnx_dynamic or self.grid[i].shape[2:4] != x[i].shape[2:4]:
                     self.grid[i], self.anchor_grid[i] = self._make_grid(nx, ny, i)
-                print(x[i])
+                
                 y = x[i].sigmoid()
                 print(y)
-                exit(0)
+                print(y.shape)
+                
                 if self.inplace:
                     y[..., 0:2] = (y[..., 0:2] * 2 - 0.5 + self.grid[i]) * self.stride[i]  # xy
                     y[..., 2:4] = (y[..., 2:4] * 2) ** 2 * self.anchor_grid[i]  # wh
@@ -68,7 +69,7 @@ class DetectOBB(nn.Module):
                     wh = (y[..., 2:4] * 2) ** 2 * self.anchor_grid[i]  # wh
                     y = torch.cat((xy, wh, y[..., 4:]), -1)
                 z.append(y.view(bs, -1, self.no))
-
+        exit(0)
         return x if self.training else (torch.cat(z, 1), x)
 
     def _make_grid(self, nx=20, ny=20, i=0):
@@ -182,7 +183,7 @@ class Model(nn.Module):
         return y
 
     def _profile_one_layer(self, m, x, dt):
-        c = isinstance(m, Detect)  # is final layer, copy input as inplace fix
+        c = isinstance(m, DetectOBB)  # is final layer, copy input as inplace fix
         o = thop.profile(m, inputs=(x.copy() if c else x,), verbose=False)[0] / 1E9 * 2 if thop else 0  # FLOPs
         t = time_sync()
         for _ in range(10):
@@ -233,7 +234,7 @@ class Model(nn.Module):
         # Apply to(), cpu(), cuda(), half() to model tensors that are not parameters or registered buffers
         self = super()._apply(fn)
         m = self.model[-1]  # Detect()
-        if isinstance(m, Detect):
+        if isinstance(m, DetectOBB):
             m.stride = fn(m.stride)
             m.grid = list(map(fn, m.grid))
             if isinstance(m.anchor_grid, list):
