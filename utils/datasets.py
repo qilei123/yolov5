@@ -1394,7 +1394,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
         img, label, path, shapes, obbs_out = zip(*batch)  # transposed
         for i, lb in enumerate(label):
             lb[:, 0] = i  # add target image index for build_targets()
-        return torch.stack(img, 0), torch.cat(label, 0), path, shapes, obbs_out
+        return torch.stack(img, 0), torch.cat(label, 0), path, shapes, torch.cat(obbs_out,0)
 
 if __name__ == "__main__":
     hyp = yaml.safe_load(open('data/hyps/hyp.scratch.yaml'))
