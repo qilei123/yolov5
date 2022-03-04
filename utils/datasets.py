@@ -1280,8 +1280,10 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
         if nl:
             label_boxes_out[:, 1:] = torch.from_numpy(labels)
             labels_out = torch.from_numpy(labels[:,1])
+            print(label_outs)
             obbs_out = torch.from_numpy(obbs)
-        
+            print(obbs_out)
+
         # Convert
         img = img.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
         img = np.ascontiguousarray(img)
@@ -1351,5 +1353,5 @@ if __name__ == "__main__":
     hyp = yaml.safe_load(open('data/hyps/hyp.scratch.yaml'))
 
     dataset_obb = LoadImagesAndLabels4OBB('/home/qilei/DATASETS/trans_drone/andover_worster/annotations/test_AW_obb.json',augment = True,hyp=hyp)
-    _,label_outs,_,_ = dataset_obb.__getitem__(11)
+    _,label_outs,_,_,_,_ = dataset_obb.__getitem__(11)
     #print(label_outs)
