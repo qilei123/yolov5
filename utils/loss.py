@@ -331,9 +331,9 @@ class ComputeLossOBB:
             gain[2:6] = torch.tensor(p[i].shape)[[3, 2, 3, 2]]  # xyxy gain
 
             # Match targets to anchors
+            print(targets)
             t = targets * gain
             print(t)
-            exit(0)
             if nt:
                 # Matches
                 r = t[:, :, 4:6] / anchors[:, None]  # wh ratio
