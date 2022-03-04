@@ -280,6 +280,7 @@ def random_perspective_segs(im, targets=(), segments=(), degrees=10, translate=.
                 #cv2.rectangle(im,(int(new[i][0]),int(new[i][1])),(int(new[i][2]),int(new[i][3])),(0,255,0),2)
                 #print(xy.shape)
         else:  # warp boxes
+            # to be abandoned
             xy = np.ones((n * 4, 3))
             xy[:, :2] = targets[:, [1, 2, 3, 4, 1, 4, 3, 2]].reshape(n * 4, 2)  # x1y1, x2y2, x1y2, x2y1
             xy = xy @ M.T  # transform
@@ -360,6 +361,14 @@ def mixup(im, labels, im2, labels2):
     im = (im * r + im2 * (1 - r)).astype(np.uint8)
     labels = np.concatenate((labels, labels2), 0)
     return im, labels
+
+def mixup_poly(im, labels, segs, im2, labels2, segs2):
+    # Applies MixUp augmentation https://arxiv.org/pdf/1710.09412.pdf
+    r = np.random.beta(32.0, 32.0)  # mixup ratio, alpha=beta=32.0
+    im = (im * r + im2 * (1 - r)).astype(np.uint8)
+    labels = np.concatenate((labels, labels2), 0)
+    segs = np.concatenate((segs, segs2), 0)
+    return im, labels, segs
 
 
 def box_candidates(box1, box2, wh_thr=2, ar_thr=100, area_thr=0.1, eps=1e-16):  # box1(4,n), box2(4,n)

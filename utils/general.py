@@ -627,6 +627,12 @@ def xyn2xy(x, w=640, h=640, padw=0, padh=0):
     y[:, 1] = h * x[:, 1] + padh  # top left y
     return y
 
+def xy2xyn(x, w=640, h=640, clip=False, eps=0.0):
+    # Convert pixel segments into normalized segments, shape (n,2)
+    y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
+    y[::2] = x[::2]/w
+    y[::2] = x[::2]/w
+    return y
 
 def segment2box(segment, width=640, height=640):
     # Convert 1 segment label to 1 box label, applying inside-image constraint, i.e. (xy1, xy2, ...) to (xyxy)
@@ -904,7 +910,6 @@ def poly2obb(polys):
         obboxes = np.array(obboxes)
 
     #obboxes = regular_obb(obboxes)
-    #obboxes = obboxes.reshape(*order, 5)
     return obboxes
 
 # Variables

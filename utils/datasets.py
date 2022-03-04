@@ -32,9 +32,9 @@ sys.path.append('/data1/qilei_chen/DEVELOPMENTS/yolov5')
 sys.path.append('/home/qilei/DEVELOPMENT/yolov5')
 from pycocotools.coco import COCO
 
-from utils.augmentations import Albumentations, augment_hsv, copy_paste, letterbox, mixup, random_perspective, random_perspective_segs
+from utils.augmentations import Albumentations, augment_hsv, copy_paste, letterbox, mixup, mixup_poly, random_perspective, random_perspective_segs
 from utils.general import (DATASETS_DIR, LOGGER, NUM_THREADS, check_dataset, check_requirements, check_yaml, clean_str,
-                           segments2boxes, xyn2xy, xywh2xyxy, xywhn2xyxy, xyxy2xywhn, poly2obb)
+                           segments2boxes, xyn2xy, xywh2xyxy, xywhn2xyxy, xyxy2xywhn, poly2obb,xy2xyn)
 from utils.torch_utils import torch_distributed_zero_first
 
 # Parameters
@@ -1212,12 +1212,12 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
             else:
                 mosaic_fun = self.load_mosaic9
 
-            img, labels = mosaic_fun(index)
+            img, labels, segments4 = mosaic_fun(index)
             shapes = None
 
             # MixUp augmentation
             if random.random() < hyp['mixup']:
-                img, labels = mixup(img, labels, *mosaic_fun(random.randint(0, self.n - 1)))
+                img, labels, segments4 = mixup_poly(img, labels, segments4, *mosaic_fun(random.randint(0, self.n - 1)))
 
         else:
             # Load image
@@ -1229,11 +1229,12 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
             shapes = (h0, w0), ((h / h0, w / w0), pad)  # for COCO mAP rescaling
 
             labels = self.labels[index].copy()
+            segments4 = self.segments[index].copy()
             if labels.size:  # normalized xywh to pixel xyxy format
                 labels[:, 1:] = xywhn2xyxy(labels[:, 1:], ratio[0] * w, ratio[1] * h, padw=pad[0], padh=pad[1])
-
+                segments4 = [xyn2xy(x,ratio[0] * w, ratio[1] * h, padw=pad[0], padh=pad[1]) for x in segments4]
             if self.augment:
-                img, labels = random_perspective(img, labels,
+                img, labels, segments4 = random_perspective_segs(img, labels,segments4,
                                                  degrees=hyp['degrees'],
                                                  translate=hyp['translate'],
                                                  scale=hyp['scale'],
@@ -1243,7 +1244,8 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
         nl = len(labels)  # number of labels
         if nl:
             labels[:, 1:5] = xyxy2xywhn(labels[:, 1:5], w=img.shape[1], h=img.shape[0], clip=True, eps=1E-3)
-
+            segments4 = [xy2xyn(x, w=img.shape[1], h=img.shape[0],clip=True, eps=1E-3) for x in segments4]
+            print(segments4)
         if self.augment:
             # Albumentations
             img, labels = self.albumentations(img, labels)
@@ -1333,13 +1335,13 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
                                            perspective=self.hyp['perspective'],
                                            border=self.mosaic_border)  # border to remove
         
-        obb_labels4 = poly2obb(segments4)
+        #obb_labels4 = poly2obb(segments4)
 
-        return img4, labels4 
+        return img4, labels4, segments4 
 
 if __name__ == "__main__":
     hyp = yaml.safe_load(open('data/hyps/hyp.scratch.yaml'))
 
-    dataset_coco = LoadImagesAndLabels4OBB('/home/qilei/DATASETS/trans_drone/andover_worster/annotations/test_AW_obb.json',augment = True,hyp=hyp)
-    _,label_outs,_,_ = dataset_coco.__getitem__(11)
+    dataset_obb = LoadImagesAndLabels4OBB('/home/qilei/DATASETS/trans_drone/andover_worster/annotations/test_AW_obb.json',augment = True,hyp=hyp)
+    _,label_outs,_,_ = dataset_obb.__getitem__(11)
     #print(label_outs)
