@@ -900,8 +900,9 @@ def poly2obb(polys):
     for poly in polys_f32:
         
         (x, y), (w, h), angle = cv2.minAreaRect(poly)
-        angle = -angle
-        theta = angle / 180 * pi
+        #angle = -angle
+        #theta = angle / 180 * pi
+        theta = angle/90
         obboxes.append([x, y, w, h, theta])
 
     if not obboxes:
