@@ -332,6 +332,8 @@ class ComputeLossOBB:
 
             # Match targets to anchors
             t = targets * gain
+            print(t)
+            exit(0)
             if nt:
                 # Matches
                 r = t[:, :, 4:6] / anchors[:, None]  # wh ratio
@@ -353,8 +355,7 @@ class ComputeLossOBB:
 
             # Define
             b, c = t[:, :2].long().T  # image, class
-            print(b)
-            print('-------------')
+
             gxy = t[:, 2:4]  # grid xy
             gwh = t[:, 4:6]  # grid wh
             gij = (gxy - offsets).long()
