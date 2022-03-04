@@ -33,7 +33,7 @@ sys.path.append('/home/qilei/DEVELOPMENT/yolov5')
 from pycocotools.coco import COCO
 
 from utils.augmentations import Albumentations, augment_hsv, copy_paste, letterbox, mixup, mixup_poly, random_perspective, random_perspective_segs
-from utils.general import (DATASETS_DIR, LOGGER, NUM_THREADS, check_dataset, check_requirements, check_yaml, clean_str,
+from utils.general import (DATASETS_DIR, LOGGER, NUM_THREADS, check_dataset, check_requirements, check_yaml, clean_str, obb2poly,
                            segments2boxes, xyn2xy, xywh2xyxy, xywhn2xyxy, xyxy2xywhn, poly2obb,xy2xyn)
 from utils.torch_utils import torch_distributed_zero_first
 
@@ -1275,7 +1275,9 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
 
         label_boxes_out = torch.zeros((nl, 6))
         labels_out = torch.zeros((nl, 1))
+        print(segments4)
         obbs = poly2obb(segments4)
+        print(obb2poly(obbs))
         obbs_out = torch.zeros((nl,6))
         if nl:
             label_boxes_out[:, 1:] = torch.from_numpy(labels)

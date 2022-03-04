@@ -907,9 +907,9 @@ def regular_obb(obboxes):
     w_regular = torch.where(w > h, w, h)
     h_regular = torch.where(w > h, h, w)
     theta_regular = torch.where(w > h, theta, theta+pi/2)
-    print(theta_regular)
+    #print(theta_regular)
     theta_regular = regular_theta(theta_regular)
-    print(theta_regular)
+    #print(theta_regular)
     return torch.stack([x, y, w_regular, h_regular, theta_regular], dim=-1)
 
 def poly2obb_org(polys):
@@ -954,6 +954,22 @@ def poly2obb(polys):
 
     obboxes = regular_obb(obboxes)
     return obboxes
+
+def obb2poly(obboxes):
+    center, w, h, theta = torch.split(obboxes, [2, 1, 1, 1], dim=-1)
+    Cos, Sin = torch.cos(theta), torch.sin(theta)
+
+    vector1 = torch.cat(
+        [w/2 * Cos, -w/2 * Sin], dim=-1)
+    vector2 = torch.cat(
+        [-h/2 * Sin, -h/2 * Cos], dim=-1)
+
+    point1 = center + vector1 + vector2
+    point2 = center + vector1 - vector2
+    point3 = center - vector1 - vector2
+    point4 = center - vector1 + vector2
+    return torch.cat(
+        [point1, point2, point3, point4], dim=-1)
 
 # Variables
 NCOLS = 0 if is_docker() else shutil.get_terminal_size().columns  # terminal window size for tqdm
