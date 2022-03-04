@@ -331,9 +331,8 @@ class ComputeLossOBB:
             gain[2:6] = torch.tensor(p[i].shape)[[3, 2, 3, 2]]  # xyxy gain
 
             # Match targets to anchors
-            print(targets)
             t = targets * gain
-            print(t)
+
             if nt:
                 # Matches
                 r = t[:, :, 4:6] / anchors[:, None]  # wh ratio
@@ -358,17 +357,19 @@ class ComputeLossOBB:
 
             gxy = t[:, 2:4]  # grid xy
             gwh = t[:, 4:6]  # grid wh
+            gtheta = t[:,6]
             gij = (gxy - offsets).long()
             gi, gj = gij.T  # grid xy indices
 
             # Append
             a = t[:, 6].long()  # anchor indices
             indices.append((b, a, gj.clamp_(0, gain[3] - 1), gi.clamp_(0, gain[2] - 1)))  # image, anchor, grid indices
-            tbox.append(torch.cat((gxy - gij, gwh), 1))  # box
+            tbox.append(torch.cat((gxy - gij, gwh,gtheta), 1))  # box
             anch.append(anchors[a])  # anchors
             tcls.append(c)  # class
 
-            
+        print(tbox)
+        exit(0)    
         return tcls, tbox , indices, anch 
         #tcls is the categories, 
         #tbox is gtbox与三个负责预测的网格的xy坐标偏移量，gtbox的宽高, 
