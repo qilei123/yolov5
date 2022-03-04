@@ -179,7 +179,7 @@ def create_dataloader_obb(path, imgsz, batch_size, stride, single_cls=False, hyp
                   num_workers=nw,
                   sampler=sampler,
                   pin_memory=True,
-                  collate_fn=LoadImagesAndLabels.collate_fn4 if quad else LoadImagesAndLabels.collate_fn), dataset
+                  collate_fn=LoadImagesAndLabels.collate_fn4 if quad else LoadImagesAndLabels4OBB.collate_fn), dataset
 
 class InfiniteDataLoader(dataloader.DataLoader):
     """ Dataloader that reuses workers
@@ -1388,6 +1388,13 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
         #obb_labels4 = poly2obb(segments4)
 
         return img4, labels4, segments4 
+
+    @staticmethod
+    def collate_fn(batch):
+        img, label, path, shapes, obbs_out = zip(*batch)  # transposed
+        for i, lb in enumerate(label):
+            lb[:, 0] = i  # add target image index for build_targets()
+        return torch.stack(img, 0), torch.cat(label, 0), path, shapes, obbs_out
 
 if __name__ == "__main__":
     hyp = yaml.safe_load(open('data/hyps/hyp.scratch.yaml'))
