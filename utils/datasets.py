@@ -1245,10 +1245,12 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
         if nl:
             labels[:, 1:5] = xyxy2xywhn(labels[:, 1:5], w=img.shape[1], h=img.shape[0], clip=True, eps=1E-3)
             segments4 = [xy2xyn(x, w=img.shape[1], h=img.shape[0],clip=True, eps=1E-3) for x in segments4]
-            print(segments4)
+            
         if self.augment:
             # Albumentations
+            print(labels)
             img, labels = self.albumentations(img, labels)
+            print(labels)
             nl = len(labels)  # update after albumentations
 
             # HSV color-space
