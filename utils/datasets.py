@@ -1267,26 +1267,26 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
                 img = np.fliplr(img)
                 if nl:
                     labels[:, 1] = 1 - labels[:, 1]
-                    print(segments4)
                     segments4[:,:,0] = 1-segments4[:,:,0]
-                    print(segments4)
 
             # Cutouts
             # labels = cutout(img, labels, p=0.5)
             # nl = len(labels)  # update after cutout
 
-        labels_out = torch.zeros((nl, 6))
+        label_boxes_out = torch.zeros((nl, 6))
+        labels_out = torch.zeros((nl, 1))
         obbs = poly2obb(segments4)
         obbs_out = torch.zeros((nl,5))
         if nl:
-            labels_out[:, 1:] = torch.from_numpy(labels)
+            label_boxes_out[:, 1:] = torch.from_numpy(labels)
+            labels_out = torch.from_numpy(labels[:,1])
             obbs_out = torch.from_numpy(obbs)
         
         # Convert
         img = img.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
         img = np.ascontiguousarray(img)
 
-        return torch.from_numpy(img), labels_out, self.img_files[index], shapes
+        return torch.from_numpy(img), label_boxes_out, self.img_files[index], shapes, obbs_out,labels_out
 
     def load_mosaic(self, index):
         # YOLOv5 4-mosaic loader. Loads 1 image + 3 random images into a 4-image mosaic
