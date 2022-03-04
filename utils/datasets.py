@@ -1268,6 +1268,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
                 img = np.fliplr(img)
                 if nl:
                     labels[:, 1] = 1 - labels[:, 1]
+                    print(segments4)
                     segments4[:,:,0] = 1-segments4[:,:,0]
 
             # Cutouts
