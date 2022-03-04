@@ -1275,12 +1275,9 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
 
         label_boxes_out = torch.zeros((nl, 6))
         labels_out = torch.zeros((nl, 1))
-        print(segments4)
-        obbs = poly2obb(segments4)
-        print('---------')
-        print(obb2poly(obbs))
         obbs_out = torch.zeros((nl,6))
         if nl:
+            obbs = poly2obb(segments4)
             label_boxes_out[:, 1:] = torch.from_numpy(labels)
             labels_out = torch.from_numpy(labels[:,0])
             obbs_out[:,1:] = obbs
@@ -1290,7 +1287,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
         img = img.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
         img = np.ascontiguousarray(img)
 
-        return torch.from_numpy(img), label_boxes_out, self.img_files[index], shapes, obbs_out,labels_out
+        return torch.from_numpy(img), label_boxes_out, self.img_files[index], shapes, obbs_out
 
     def load_mosaic(self, index):
         # YOLOv5 4-mosaic loader. Loads 1 image + 3 random images into a 4-image mosaic
@@ -1355,5 +1352,6 @@ if __name__ == "__main__":
     hyp = yaml.safe_load(open('data/hyps/hyp.scratch.yaml'))
 
     dataset_obb = LoadImagesAndLabels4OBB('/home/qilei/DATASETS/trans_drone/andover_worster/annotations/test_AW_obb.json',augment = True,hyp=hyp)
-    _,label_outs,_,_,_,_ = dataset_obb.__getitem__(11)
+    _,label_outs,_,_,obbs_out = dataset_obb.__getitem__(11)
+    print(obbs_out)
     #print(label_outs)
