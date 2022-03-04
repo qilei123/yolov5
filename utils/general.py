@@ -895,7 +895,7 @@ def increment_path(path, exist_ok=False, sep='', mkdir=False):
 pi = 3.141592
 
 def poly2obb(polys):
-    polys_f32 = polys.astype(np.float32)
+    polys_f32 = np.array(polys).astype(np.float32)
     obboxes = []
     for poly in polys_f32:
         
