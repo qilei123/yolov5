@@ -1279,7 +1279,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
         obbs_out = torch.zeros((nl,6))
         if nl:
             label_boxes_out[:, 1:] = torch.from_numpy(labels)
-            labels_out = torch.from_numpy(labels[:,1])
+            labels_out = torch.from_numpy(labels[:,0])
             print(labels_out)
             obbs_out[:,1:] = torch.from_numpy(obbs)
             print(obbs_out)
