@@ -1244,7 +1244,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
         nl = len(labels)  # number of labels
         if nl:
             labels[:, 1:5] = xyxy2xywhn(labels[:, 1:5], w=img.shape[1], h=img.shape[0], clip=True, eps=1E-3)
-            segments4 = [xy2xyn(x, w=img.shape[1], h=img.shape[0],clip=True, eps=1E-3) for x in segments4]
+            segments4 = np.array([xy2xyn(x, w=img.shape[1], h=img.shape[0],clip=True, eps=1E-3) for x in segments4])
             
         if self.augment:
             # Albumentations
