@@ -894,15 +894,35 @@ def increment_path(path, exist_ok=False, sep='', mkdir=False):
 
 pi = 3.141592
 
-def poly2obb(polys):
-    polys_f32 = np.array(polys).astype(np.float32)
+def regular_theta(theta, mode='180', start=-pi/2):
+    assert mode in ['360', '180']
+    cycle = 2 * pi if mode == '360' else pi
+
+    theta = theta - start
+    theta = theta % cycle
+    return theta + start
+
+def regular_obb(obboxes):
+    x, y, w, h, theta = obboxes.unbind(dim=-1)
+    w_regular = torch.where(w > h, w, h)
+    h_regular = torch.where(w > h, h, w)
+    theta_regular = torch.where(w > h, theta, theta+pi/2)
+    theta_regular = regular_theta(theta_regular)
+    return torch.stack([x, y, w_regular, h_regular, theta_regular], dim=-1)
+
+def poly2obb_org(polys):
+    polys_np = polys.detach().cpu().numpy()
+
+    order = polys_np.shape[:-1]
+    num_points = polys_np.shape[-1] // 2
+    polys_np = polys_np.reshape(-1, num_points, 2)
+    polys_np = polys_np.astype(np.float32)
+
     obboxes = []
-    for poly in polys_f32:
-        
+    for poly in polys_np:
         (x, y), (w, h), angle = cv2.minAreaRect(poly)
-        #angle = -angle
-        #theta = angle / 180 * pi
-        theta = angle/90
+        angle = -angle
+        theta = angle / 180 * pi
         obboxes.append([x, y, w, h, theta])
 
     if not obboxes:
@@ -910,7 +930,27 @@ def poly2obb(polys):
     else:
         obboxes = np.array(obboxes)
 
-    #obboxes = regular_obb(obboxes)
+    obboxes = regular_obb(obboxes)
+    obboxes = obboxes.reshape(*order, 5)
+    return polys.new_tensor(obboxes)
+
+def poly2obb(polys):
+    polys_f32 = np.array(polys).astype(np.float32)
+    obboxes = []
+    for poly in polys_f32:
+        
+        (x, y), (w, h), angle = cv2.minAreaRect(poly)
+        angle = -angle
+        theta = angle / 180 * pi
+        
+        obboxes.append([x, y, w, h, theta])
+
+    if not obboxes:
+        obboxes = np.zeros((0, 5))
+    else:
+        obboxes = np.array(obboxes)
+
+    obboxes = regular_obb(obboxes)
     return obboxes
 
 # Variables
