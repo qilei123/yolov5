@@ -1277,6 +1277,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
         labels_out = torch.zeros((nl, 1))
         print(segments4)
         obbs = poly2obb(segments4)
+        print('---------')
         print(obb2poly(obbs))
         obbs_out = torch.zeros((nl,6))
         if nl:
