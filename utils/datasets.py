@@ -1282,7 +1282,6 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
             labels_out = torch.from_numpy(labels[:,0])
             obbs_out[:,1:] = obbs
             obbs_out[:,0] = torch.from_numpy(labels[:,0])
-            print(obbs_out)
 
         # Convert
         img = img.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
