@@ -1276,12 +1276,12 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
         label_boxes_out = torch.zeros((nl, 6))
         labels_out = torch.zeros((nl, 1))
         obbs = poly2obb(segments4)
-        obbs_out = torch.zeros((nl,5))
+        obbs_out = torch.zeros((nl,6))
         if nl:
             label_boxes_out[:, 1:] = torch.from_numpy(labels)
             labels_out = torch.from_numpy(labels[:,1])
             print(labels_out)
-            obbs_out = torch.from_numpy(obbs)
+            obbs_out[:,:,1:] = torch.from_numpy(obbs)
             print(obbs_out)
 
         # Convert
