@@ -1248,9 +1248,8 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
             
         if self.augment:
             # Albumentations
-            print(labels)
             img, labels = self.albumentations(img, labels)
-            print(labels)
+
             nl = len(labels)  # update after albumentations
 
             # HSV color-space
@@ -1260,22 +1259,28 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
             if random.random() < hyp['flipud']:
                 img = np.flipud(img)
                 if nl:
+                    segments4[:,:,1] = 1-segments4[:,:,1]
                     labels[:, 2] = 1 - labels[:, 2]
+
 
             # Flip left-right
             if random.random() < hyp['fliplr']:
                 img = np.fliplr(img)
                 if nl:
                     labels[:, 1] = 1 - labels[:, 1]
+                    segments4[:,:,0] = 1-segments4[:,:,0]
 
             # Cutouts
             # labels = cutout(img, labels, p=0.5)
             # nl = len(labels)  # update after cutout
 
         labels_out = torch.zeros((nl, 6))
+        obbs = poly2obb(segments4)
+        obbs_out = torch.zeros((nl,5))
         if nl:
             labels_out[:, 1:] = torch.from_numpy(labels)
-
+            obbs_out = torch.from_numpy(obbs)
+        print(obbs_out)
         # Convert
         img = img.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
         img = np.ascontiguousarray(img)
