@@ -274,7 +274,7 @@ class ComputeLossOBB:
                 pxy = ps[:, :2].sigmoid() * 2 - 0.5
                 pwh = (ps[:, 2:4].sigmoid() * 2) ** 2 * anchors[i]
                 ptheta =ps[:, 4].sigmoid()*pi/(-2)
-                ptheta = torch.unsqueeze(ptheta,1)
+                ptheta = torch.unsqueeze(ptheta,1)*(pi/(-2))
                 pbox = torch.cat((pxy, pwh, ptheta), 1)  # predicted box
                 print(pbox.shape)
                 print(anchors[i].shape)
