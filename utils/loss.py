@@ -8,7 +8,7 @@ import torch.nn as nn
 
 from utils.metrics import bbox_iou
 from utils.torch_utils import de_parallel
-
+pi = 3.1415926
 
 def smooth_BCE(eps=0.1):  # https://github.com/ultralytics/yolov3/issues/238#issuecomment-598028441
     # return positive, negative label smoothing BCE targets
@@ -269,12 +269,12 @@ class ComputeLossOBB:
             n = b.shape[0]  # number of targets
             if n:
                 ps = pi[b, a, gj, gi]  # prediction subset corresponding to targets
-                print(ps.shape)
+
                 # Regression
                 pxy = ps[:, :2].sigmoid() * 2 - 0.5
                 pwh = (ps[:, 2:4].sigmoid() * 2) ** 2 * anchors[i]
-                ptheta =ps[:, 4].sigmoid()
-                print(ptheta)
+                ptheta =ps[:, 4].sigmoid()*pi/(-2)
+                ptheta = torch.unsqueeze(ptheta,1)
                 pbox = torch.cat((pxy, pwh, ptheta), 1)  # predicted box
                 print(pbox.shape)
                 print(anchors[i].shape)
@@ -332,13 +332,12 @@ class ComputeLossOBB:
 
         for i in range(self.nl):
             anchors = self.anchors[i]
-            print(anchors)
+
             gain[2:6] = torch.tensor(p[i].shape)[[3, 2, 3, 2]]  # xyxy gain
 
             # Match targets to anchors
             t = targets * gain
-            print(gain)
-            print(t)
+
             if nt:
                 # Matches
                 r = t[:, :, 4:6] / anchors[:, None]  # wh ratio
@@ -376,7 +375,7 @@ class ComputeLossOBB:
             tbox.append(torch.cat((gxy - gij, gwh,gtheta), 1))  # box
             anch.append(anchors[a])  # anchors
             tcls.append(c)  # class
-            print(tbox[i])
+
         return tcls, tbox , indices, anch 
         #tcls is the categories, 
         #tbox is gtbox与三个负责预测的网格的xy坐标偏移量，gtbox的宽高, 
