@@ -277,6 +277,7 @@ class ComputeLossOBB:
 
                 pbox = torch.cat((pxy, pwh), 1)  # predicted box
                 print(pbox)
+                print(anchors[i])
                 exit(0)
                 iou = bbox_iou(pbox.T, tbox[i], x1y1x2y2=False, CIoU=True)  # iou(prediction, target)
                 lbox += (1.0 - iou).mean()  # iou loss
