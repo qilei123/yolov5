@@ -338,6 +338,7 @@ class ComputeLossOBB:
             # Match targets to anchors
             t = targets * gain
             print(gain)
+            print(t)
             if nt:
                 # Matches
                 r = t[:, :, 4:6] / anchors[:, None]  # wh ratio
