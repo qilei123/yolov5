@@ -892,7 +892,7 @@ def increment_path(path, exist_ok=False, sep='', mkdir=False):
         path.mkdir(parents=True, exist_ok=True)  # make directory
     return path
 
-pi = 3.141592
+pi = 3.1415926
 
 def regular_theta(theta, mode='180', start=-pi/2):
     assert mode in ['360', '180']

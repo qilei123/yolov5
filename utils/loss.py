@@ -273,7 +273,11 @@ class ComputeLossOBB:
                 # Regression
                 pxy = ps[:, :2].sigmoid() * 2 - 0.5
                 pwh = (ps[:, 2:4].sigmoid() * 2) ** 2 * anchors[i]
+                ptheta =None
+
                 pbox = torch.cat((pxy, pwh), 1)  # predicted box
+                print(pbox)
+                exit(0)
                 iou = bbox_iou(pbox.T, tbox[i], x1y1x2y2=False, CIoU=True)  # iou(prediction, target)
                 lbox += (1.0 - iou).mean()  # iou loss
 
@@ -357,7 +361,7 @@ class ComputeLossOBB:
 
             gxy = t[:, 2:4]  # grid xy
             gwh = t[:, 4:6]  # grid wh
-            print(gwh)
+
             gtheta = t[:,6]
             gtheta = torch.unsqueeze(gtheta,1)
             #exit(0)
@@ -370,9 +374,7 @@ class ComputeLossOBB:
             tbox.append(torch.cat((gxy - gij, gwh,gtheta), 1))  # box
             anch.append(anchors[a])  # anchors
             tcls.append(c)  # class
-
-        print(tbox)
-        exit(0)    
+   
         return tcls, tbox , indices, anch 
         #tcls is the categories, 
         #tbox is gtbox与三个负责预测的网格的xy坐标偏移量，gtbox的宽高, 
