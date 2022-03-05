@@ -375,7 +375,7 @@ class ComputeLossOBB:
             tbox.append(torch.cat((gxy - gij, gwh,gtheta), 1))  # box
             anch.append(anchors[a])  # anchors
             tcls.append(c)  # class
-   
+            print(tbox[i])
         return tcls, tbox , indices, anch 
         #tcls is the categories, 
         #tbox is gtbox与三个负责预测的网格的xy坐标偏移量，gtbox的宽高, 
