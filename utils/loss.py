@@ -269,7 +269,7 @@ class ComputeLossOBB:
             n = b.shape[0]  # number of targets
             if n:
                 ps = pi[b, a, gj, gi]  # prediction subset corresponding to targets
-
+                print(ps)
                 # Regression
                 pxy = ps[:, :2].sigmoid() * 2 - 0.5
                 pwh = (ps[:, 2:4].sigmoid() * 2) ** 2 * anchors[i]
