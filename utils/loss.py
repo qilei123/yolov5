@@ -5,9 +5,13 @@ Loss functions
 
 import torch
 import torch.nn as nn
+from utils.general import regular_obb
 
 from utils.metrics import bbox_iou
 from utils.torch_utils import de_parallel
+
+import BboxToolkit as bt
+
 pi = 3.1415926
 
 def smooth_BCE(eps=0.1):  # https://github.com/ultralytics/yolov3/issues/238#issuecomment-598028441
@@ -276,10 +280,13 @@ class ComputeLossOBB:
                 ptheta =ps[:, 4].sigmoid() * 3.1415926/(-2)
                 ptheta = torch.unsqueeze(ptheta,1)
                 pbox = torch.cat((pxy, pwh, ptheta), 1)  # predicted box
+                pbox = regular_obb(pbox)
+                #iou = bbox_iou(pbox.T, tbox[i], x1y1x2y2=False, CIoU=True)  # iou(prediction, target)
                 print(pbox.shape)
-                print(anchors[i].shape)
+                print(tbox[i].shape)
+                iou = bt.bbox_overlaps(pbox.T, tbox[i])
+                print(iou)
                 exit(0)
-                iou = bbox_iou(pbox.T, tbox[i], x1y1x2y2=False, CIoU=True)  # iou(prediction, target)
                 lbox += (1.0 - iou).mean()  # iou loss
 
                 # Objectness
@@ -291,7 +298,7 @@ class ComputeLossOBB:
 
                 # Classification
                 if self.nc > 1:  # cls loss (only if multiple classes)
-                    t = torch.full_like(ps[:, 5:], self.cn, device=device)  # targets
+                    t = torch.full_like(ps[:, 6:], self.cn, device=device)  # targets
                     t[range(n), tcls[i]] = self.cp
                     lcls += self.BCEcls(ps[:, 5:], t)  # BCE
 
@@ -299,7 +306,7 @@ class ComputeLossOBB:
                 # with open('targets.txt', 'a') as file:
                 #     [file.write('%11.5g ' * 4 % tuple(x) + '\n') for x in torch.cat((txy[i], twh[i]), 1)]
 
-            obji = self.BCEobj(pi[..., 4], tobj)
+            obji = self.BCEobj(pi[..., 6], tobj)
             lobj += obji * self.balance[i]  # obj loss
             if self.autobalance:
                 self.balance[i] = self.balance[i] * 0.9999 + 0.0001 / obji.detach().item()
