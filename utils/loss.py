@@ -284,7 +284,7 @@ class ComputeLossOBB:
                 #iou = bbox_iou(pbox.T, tbox[i], x1y1x2y2=False, CIoU=True)  # iou(prediction, target)
                 print(pbox.shape)
                 print(tbox[i].shape)
-                iou = bt.bbox_overlaps(pbox.T, tbox[i])
+                iou = bt.bbox_overlaps(pbox, tbox[i])
                 print(iou)
                 exit(0)
                 lbox += (1.0 - iou).mean()  # iou loss
