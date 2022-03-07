@@ -40,7 +40,7 @@ from utils.callbacks import Callbacks
 from utils.datasets import create_dataloader,create_dataloader_obb
 from utils.general import (LOGGER, box_iou, check_dataset, check_img_size, check_requirements, check_yaml,
                            coco80_to_coco91_class, colorstr, increment_path, non_max_suppression, print_args,
-                           scale_coords, xywh2xyxy, xywh2xyxy1, xyxy2xywh)
+                           scale_coords, xywh2xyxy, xywh2xyxy1, xyxy2xywh,non_max_suppression_obb)
 from utils.metrics import ConfusionMatrix, ap_per_class
 from utils.plots import output_to_target, plot_images, plot_val_study
 from utils.torch_utils import select_device, time_sync
@@ -205,8 +205,8 @@ def run(data,
         t3 = time_sync()
         #print('after model')
         #print(out.shape)
-        #out = non_max_suppression(out, conf_thres, iou_thres, labels=lb, multi_label=True, agnostic=single_cls)
-        out = obb_nms(out,iou_thres)
+        out = non_max_suppression_obb(out, conf_thres, iou_thres, labels=lb, multi_label=True, agnostic=single_cls)
+        #out = obb_nms(out,iou_thres)
         #print('after nms:')
         #print(out.shape)
         #for i in range(len(out)):
