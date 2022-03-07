@@ -1273,6 +1273,8 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
 
             labels = self.labels[index].copy()
             segments4 = self.segments[index].copy()
+            print(labels.shape)
+            print(segments4.shape)             
             if labels.size:  # normalized xywh to pixel xyxy format
                 labels[:, 1:] = xywhn2xyxy(labels[:, 1:], ratio[0] * w, ratio[1] * h, padw=pad[0], padh=pad[1])
                 segments4 = [xyn2xy(x,ratio[0] * w, ratio[1] * h, padw=pad[0], padh=pad[1]) for x in segments4]
@@ -1288,8 +1290,8 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
         if nl:
             labels[:, 1:5] = xyxy2xywhn(labels[:, 1:5], w=img.shape[1], h=img.shape[0], clip=True, eps=1E-3)
             segments4 = np.array([xy2xyn(x, w=img.shape[1], h=img.shape[0],clip=True, eps=1E-3) for x in segments4])
-            print(labels.shape)
-            print(segments4.shape)  
+            #print(labels.shape)
+            #print(segments4.shape)  
         if self.augment:
             # Albumentations
             img, labels = self.albumentations(img, labels)
