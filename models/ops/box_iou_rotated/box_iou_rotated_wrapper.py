@@ -32,6 +32,8 @@ def obb_overlaps(bboxes1, bboxes2, mode='iou', is_aligned=False, device_id=None)
         outputs = aligned_obb_overlaps(
             bboxes1_th, bboxes2_th, mode)
     else:
+        print(bboxes1_th.shape)
+        print(bboxes2_th.shape)
         outputs = box_iou_rotated_ext.overlaps(
             bboxes1_th, bboxes2_th, mode == 'iou')
 
