@@ -808,7 +808,7 @@ def non_max_suppression_obb(prediction, conf_thres=0.25, iou_thres=0.45, classes
     redundant = True  # require redundant detections
     multi_label &= nc > 1  # multiple labels per box (adds 0.5ms/img)
     merge = False  # use merge-NMS
-
+    print(multi_label)
     t = time.time()
     output = [torch.zeros((0, 7), device=prediction.device)] * prediction.shape[0]
     for xi, x in enumerate(prediction):  # image index, image inference
@@ -830,10 +830,10 @@ def non_max_suppression_obb(prediction, conf_thres=0.25, iou_thres=0.45, classes
             continue
 
         # Compute conf
-        x[:, 5:] *= x[:, 4:5]  # conf = obj_conf * cls_conf
+        x[:, 6:] *= x[:, 5:6]  # conf = obj_conf * cls_conf
 
         # Box (center x, center y, width, height) to (x1, y1, x2, y2)
-        box = xywh2xyxy(x[:, :4])
+        box = xywh2xyxy(x[:, :4]) #should go to obbox
 
         # Detections matrix nx6 (xyxy, conf, cls)
         if multi_label:
