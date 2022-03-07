@@ -3,6 +3,7 @@
 Dataloaders and dataset utils
 """
 
+from cProfile import label
 import glob
 import hashlib
 import imp
@@ -1319,6 +1320,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
         obbs_out = torch.zeros((nl,7))
         print(segments4.shape)
         print(nl)
+        print(label.shape)
         if nl:
             obbs = poly2obb(segments4)
             label_boxes_out[:, 1:] = torch.from_numpy(labels)
