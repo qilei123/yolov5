@@ -32,7 +32,7 @@ def obb_nms(dets, iou_thr, device_id=None):
         # same bug will happen when bboxes is too small
         print(dets_th.shape)
         too_small = dets_th[..., [2, 3]].min(1)[0] < 0.001
-        print(too_small)
+        print(too_small.shape)
         if too_small.all():
             inds = dets_th.new_zeros(0, dtype=torch.int64)
         else:
