@@ -204,7 +204,8 @@ def run(data,
         t3 = time_sync()
         print(out.shape)
         out = non_max_suppression(out, conf_thres, iou_thres, labels=lb, multi_label=True, agnostic=single_cls)
-        print(out.shape)
+        for i in range(len(out)):
+            print(out[i].shape)
         exit(0)
         dt[2] += time_sync() - t3
 
