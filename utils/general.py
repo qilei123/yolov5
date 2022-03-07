@@ -796,9 +796,7 @@ def non_max_suppression_obb(prediction, conf_thres=0.25, iou_thres=0.45, classes
 
     nc = prediction.shape[2] - 6  # number of classes
     xc = prediction[..., 5] > conf_thres  # candidates
-    print('xc shape')
-    print(xc.shape)
-    print(xc)
+
     # Checks
     assert 0 <= conf_thres <= 1, f'Invalid Confidence threshold {conf_thres}, valid values are between 0.0 and 1.0'
     assert 0 <= iou_thres <= 1, f'Invalid IoU {iou_thres}, valid values are between 0.0 and 1.0'
@@ -815,7 +813,7 @@ def non_max_suppression_obb(prediction, conf_thres=0.25, iou_thres=0.45, classes
     output = [torch.zeros((0, 7), device=prediction.device)] * prediction.shape[0]
     for xi, x in enumerate(prediction):  # image index, image inference
         # Apply constraints
-        x[((x[..., 2:4] < min_wh) | (x[..., 2:4] > max_wh)).any(1), 4] = 0  # width-height
+        x[((x[..., 2:4] < min_wh) | (x[..., 2:4] > max_wh)).any(1), 5] = 0  # width-height
         x = x[xc[xi]]  # confidence
         #print(x.shape)
         # Cat apriori labels if autolabelling
@@ -841,6 +839,8 @@ def non_max_suppression_obb(prediction, conf_thres=0.25, iou_thres=0.45, classes
         # Detections matrix nx6 (xyxy, conf, cls)
         if multi_label:
             i, j = (x[:, 6:] > conf_thres).nonzero(as_tuple=False).T
+            print(i)
+            print(j)
             x = torch.cat((box[i], x[i, j + 5, None], j[:, None].float()), 1)
         else:  # best class only
             conf, j = x[:, 6:].max(1, keepdim=True)
