@@ -209,9 +209,9 @@ def run(data,
         #out = obb_nms(out,iou_thres)
         #print('after nms:')
         #print(out.shape)
-        #for i in range(len(out)):
-        #    print(out[i].shape)
-        #exit(0)
+        for i in range(len(out)):
+            print(out[i].shape)
+        exit(0)
         dt[2] += time_sync() - t3
 
         # Metrics
