@@ -45,6 +45,7 @@ from utils.metrics import ConfusionMatrix, ap_per_class
 from utils.plots import output_to_target, plot_images, plot_val_study
 from utils.torch_utils import select_device, time_sync
 
+from models.ops import obb_nms
 
 def save_one_txt(predn, save_conf, shape, file):
     # Save one txt result
@@ -203,7 +204,8 @@ def run(data,
         lb = [obb_targets[obb_targets[:, 0] == i, 1:] for i in range(nb)] if save_hybrid else []  # for autolabelling
         t3 = time_sync()
         print(out.shape)
-        out = non_max_suppression(out, conf_thres, iou_thres, labels=lb, multi_label=True, agnostic=single_cls)
+        #out = non_max_suppression(out, conf_thres, iou_thres, labels=lb, multi_label=True, agnostic=single_cls)
+        out = obb_nms(out,iou_thres)
         for i in range(len(out)):
             print(out[i].shape)
         exit(0)
