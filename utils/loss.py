@@ -282,8 +282,8 @@ class ComputeLossOBB:
                 pbox = torch.cat((pxy, pwh, ptheta), 1)  # predicted box
                 pbox = regular_obb(pbox)
                 
-                cpbox = pbox.clone()
-                ctbox_i = tbox[i].clone()
+                #cpbox = pbox.clone()
+                #ctbox_i = tbox[i].clone()
 
 
                 #iou = bbox_iou(pbox.T, tbox[i], x1y1x2y2=False, CIoU=True)  # iou(prediction, target)
@@ -292,7 +292,7 @@ class ComputeLossOBB:
                 print(pbox.device)
                 print(tbox[i].device)
                 with torch.no_grad():
-                    iou = bt.bbox_overlaps(cpbox.cpu(), ctbox_i.cpu())
+                    iou = bt.bbox_overlaps(pbox, tbox)
                 print(iou)
                 exit(0)
                 lbox += (1.0 - iou).mean()  # iou loss
