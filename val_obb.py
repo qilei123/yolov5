@@ -195,6 +195,8 @@ def run(data,
         dt[1] += time_sync() - t2
 
         # Loss
+        print(compute_loss)
+        exit(0)
         if compute_loss:
             loss += compute_loss([x.float() for x in train_out], obb_targets)[1]  # box, obj, cls
 
