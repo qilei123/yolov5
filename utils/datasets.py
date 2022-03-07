@@ -1195,7 +1195,7 @@ class LoadImagesAndLabels4COCO(LoadImagesAndLabels):
                 if segment:
                     self.segments[i][:, 0] = 0
             assert len(label)==len(segment),"they should be equal"
-            print(len(label))
+
 
         # Rectangular Training
         if self.rect:
@@ -1276,7 +1276,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
 
             labels = self.labels[index].copy()
             segments4 = self.segments[index].copy()
-            for i in range(11):
+            for i in range(len(self.labels)):
                 print('---------------')
                 print(self.labels[i].shape)
                 print(self.segments[i].shape)             
