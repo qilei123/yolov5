@@ -281,12 +281,17 @@ class ComputeLossOBB:
                 ptheta = torch.unsqueeze(ptheta,1)
                 pbox = torch.cat((pxy, pwh, ptheta), 1)  # predicted box
                 pbox = regular_obb(pbox)
+                
+                cpbox = pbox.copy()
+                ctbox_i = tbox[i].copy()
+
+
                 #iou = bbox_iou(pbox.T, tbox[i], x1y1x2y2=False, CIoU=True)  # iou(prediction, target)
                 print(pbox.shape)
                 print(tbox[i].shape)
                 print(pbox.device)
                 print(tbox[i].device)
-                iou = bt.bbox_overlaps(pbox.detach().cpu(), tbox[i].detach().cpu())
+                iou = bt.bbox_overlaps(cpbox.cpu(), ctbox_i.cpu())
                 print(iou)
                 exit(0)
                 lbox += (1.0 - iou).mean()  # iou loss
