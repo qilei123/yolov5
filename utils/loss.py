@@ -291,7 +291,8 @@ class ComputeLossOBB:
                 print(tbox[i].shape)
                 print(pbox.device)
                 print(tbox[i].device)
-                iou = bt.bbox_overlaps(cpbox.cpu(), ctbox_i.cpu())
+                with torch.no_grad():
+                    iou = bt.bbox_overlaps(cpbox.cpu(), ctbox_i.cpu())
                 print(iou)
                 exit(0)
                 lbox += (1.0 - iou).mean()  # iou loss
