@@ -1321,8 +1321,6 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
         #labels_out = torch.zeros((nl, 1))
         obbs_out = torch.zeros((nl,7))
 
-        print(nl)
-        print(label.shape)
         if nl:
             obbs = poly2obb(segments4)
             label_boxes_out[:, 1:] = torch.from_numpy(labels)
