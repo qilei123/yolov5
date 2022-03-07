@@ -70,7 +70,7 @@ class DetectOBB(nn.Module):
                 z.append(y.view(bs, -1, self.no))
         
                 print(y.shape)
-        exit(0)
+        #exit(0)
         return x if self.training else (torch.cat(z, 1), x)
 
     def _make_grid(self, nx=20, ny=20, i=0):
