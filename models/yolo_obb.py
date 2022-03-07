@@ -68,7 +68,7 @@ class DetectOBB(nn.Module):
                     theta = y[..., 4:5]* 3.1415926/(-2)
                     y = torch.cat((xy, wh, theta,y[..., 5:]), -1)
                 z.append(y.view(bs, -1, self.no))
-        
+                print('in head:')
                 print(y.shape)
         #exit(0)
         return x if self.training else (torch.cat(z, 1), x)

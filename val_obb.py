@@ -203,9 +203,11 @@ def run(data,
         obb_targets[:, 2:6] *= torch.Tensor([width, height, width, height]).to(device)  # to pixels
         lb = [obb_targets[obb_targets[:, 0] == i, 1:] for i in range(nb)] if save_hybrid else []  # for autolabelling
         t3 = time_sync()
+        print('after model')
         print(out.shape)
         #out = non_max_suppression(out, conf_thres, iou_thres, labels=lb, multi_label=True, agnostic=single_cls)
         out = obb_nms(out,iou_thres)
+        print('after nms:')
         print(out.shape)
         #for i in range(len(out)):
         #    print(out[i].shape)
