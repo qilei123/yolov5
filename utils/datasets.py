@@ -1206,6 +1206,7 @@ class LoadImagesAndLabels4COCO(LoadImagesAndLabels):
             self.img_files = [self.img_files[i] for i in irect]
             #self.label_files = [self.label_files[i] for i in irect]
             self.labels = [self.labels[i] for i in irect]
+            self.segments = [self.segments[i] for i in irect]
             self.shapes = s[irect]  # wh
             ar = ar[irect]
 
