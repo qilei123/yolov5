@@ -17,7 +17,8 @@ def obb2hbb(obboxes):
 def obb_nms(dets, iou_thr, device_id=None):
     if isinstance(dets, torch.Tensor):
         is_numpy = False
-        dets_th = dets
+        dets_th = dets.squeeze()
+        print(dets_th.shape)
     elif isinstance(dets, np.ndarray):
         is_numpy = True
         device = 'cpu' if device_id is None else f'cuda:{device_id}'
@@ -32,13 +33,13 @@ def obb_nms(dets, iou_thr, device_id=None):
         # same bug will happen when bboxes is too small
         #print(dets_th[:,:, [2, 3]].shape)
         
-        too_small = dets_th[..., [2, 3]].min(2)[0] < 0.001
+        too_small = dets_th[..., [2, 3]].min(1)[0] < 0.001
         #print(too_small.shape)
         if too_small.all():
             inds = dets_th.new_zeros(0, dtype=torch.int64)
         else:
             ori_inds = torch.arange(dets_th.size(0))
-            ori_inds = ori_inds[~too_small[...,:]]
+            ori_inds = ori_inds[~too_small]
             dets_th = dets_th[~too_small]
 
             bboxes, scores = dets_th[:, :5], dets_th[:, 5]
