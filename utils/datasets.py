@@ -1195,6 +1195,7 @@ class LoadImagesAndLabels4COCO(LoadImagesAndLabels):
                 if segment:
                     self.segments[i][:, 0] = 0
             assert len(label)==len(segment),"they should be equal"
+            print(len(label))
 
         # Rectangular Training
         if self.rect:
