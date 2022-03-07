@@ -12,6 +12,8 @@ from utils.torch_utils import de_parallel
 
 import BboxToolkit as bt
 
+from models.ops import obb_overlaps
+
 pi = 3.1415926
 
 def smooth_BCE(eps=0.1):  # https://github.com/ultralytics/yolov3/issues/238#issuecomment-598028441
@@ -283,8 +285,9 @@ class ComputeLossOBB:
                 pbox = regular_obb(pbox)
                 
                 #iou = bbox_iou(pbox.T, tbox[i], x1y1x2y2=False, CIoU=True)  # iou(prediction, target)
-                with torch.no_grad():
-                    iou = bt.bbox_overlaps(pbox.cpu(), tbox[i].cpu())
+                #with torch.no_grad():
+                #    iou = bt.bbox_overlaps(pbox.cpu(), tbox[i].cpu())
+                iou = obb_overlaps(pbox, tbox[i])
                 print(iou)
 
                 lbox += (1.0 - iou).mean()  # iou loss
