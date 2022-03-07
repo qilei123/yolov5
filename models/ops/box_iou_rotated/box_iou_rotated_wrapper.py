@@ -33,10 +33,12 @@ def obb_overlaps(bboxes1, bboxes2, mode='iou', is_aligned=False, device_id=None)
             bboxes1_th, bboxes2_th, mode)
     else:
         print(bboxes1_th.shape)
+        print(bboxes1_th)
         print(bboxes2_th.shape)
+        print(bboxes2_th)
         outputs = box_iou_rotated_ext.overlaps(
             bboxes1_th, bboxes2_th, mode == 'iou')
-
+        print(outputs)
         # same bug will happen when bbox size is to small
         too_small1 = bboxes1_th[:, [2, 3]].min(1)[0] < 0.001
         too_small2 = bboxes2_th[:, [2, 3]].min(1)[0] < 0.001
