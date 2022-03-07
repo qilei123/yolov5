@@ -282,8 +282,8 @@ class ComputeLossOBB:
                 pbox = torch.cat((pxy, pwh, ptheta), 1)  # predicted box
                 pbox = regular_obb(pbox)
                 
-                cpbox = pbox.copy()
-                ctbox_i = tbox[i].copy()
+                cpbox = pbox.clone()
+                ctbox_i = tbox[i].clone()
 
 
                 #iou = bbox_iou(pbox.T, tbox[i], x1y1x2y2=False, CIoU=True)  # iou(prediction, target)
