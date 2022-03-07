@@ -210,8 +210,8 @@ def run(data,
         #print('after nms:')
         #print(out.shape)
         #print(out)
-        for i in range(len(out)):
-            print(out[i].shape)
+        #for i in range(len(out)):
+        #    print(out[i].shape)
         exit(0)
         dt[2] += time_sync() - t3
 
