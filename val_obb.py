@@ -37,7 +37,7 @@ ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
 
 from models.common import DetectMultiBackend
 from utils.callbacks import Callbacks
-from utils.datasets import create_dataloader
+from utils.datasets import create_dataloader,create_dataloader_obb
 from utils.general import (LOGGER, box_iou, check_dataset, check_img_size, check_requirements, check_yaml,
                            coco80_to_coco91_class, colorstr, increment_path, non_max_suppression, print_args,
                            scale_coords, xywh2xyxy, xywh2xyxy1, xyxy2xywh)
@@ -166,7 +166,7 @@ def run(data,
         pad = 0.0 if task in ('speed', 'benchmark') else 0.5
         rect = False if task == 'benchmark' else pt  # square inference for benchmarks
         task = task if task in ('train', 'val', 'test') else 'val'  # path to train/val/test images
-        dataloader = create_dataloader(data[task], imgsz, batch_size, stride, single_cls, pad=pad, rect=rect,
+        dataloader = create_dataloader_obb(data[task], imgsz, batch_size, stride, single_cls, pad=pad, rect=rect,
                                        workers=workers, prefix=colorstr(f'{task}: '))[0]
 
     seen = 0
@@ -354,7 +354,6 @@ def main(opt):
     if opt.task in ('train', 'val', 'test'):  # run normally
         if opt.conf_thres > 0.001:  # https://github.com/ultralytics/yolov5/issues/1466
             LOGGER.info(f'WARNING: confidence threshold {opt.conf_thres} >> 0.001 will produce invalid mAP values.')
-        print(**vars(opt))
         run(**vars(opt))
 
     else:
