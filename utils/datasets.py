@@ -1251,7 +1251,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
 
         hyp = self.hyp
         mosaic = self.mosaic and random.random() < hyp['mosaic']
-        print(mosaic)
+        #print(mosaic)
         if mosaic:
             # Load mosaic
             if hyp['mosaic_n']:
