@@ -52,6 +52,7 @@ class DetectOBB(nn.Module):
             x[i] = self.m[i](x[i])  # conv
             bs, _, ny, nx = x[i].shape  # x(bs,255,20,20) to x(bs,3,20,20,nc+6)
             x[i] = x[i].view(bs, self.na, self.no, ny, nx).permute(0, 1, 3, 4, 2).contiguous()
+            print('in head1:')
             print(x[i].shape)
             if not self.training:  # inference
                 if self.onnx_dynamic or self.grid[i].shape[2:4] != x[i].shape[2:4]:
@@ -68,7 +69,7 @@ class DetectOBB(nn.Module):
                     theta = y[..., 4:5]* 3.1415926/(-2)
                     y = torch.cat((xy, wh, theta,y[..., 5:]), -1)
                 z.append(y.view(bs, -1, self.no))
-                print('in head:')
+                print('in head2:')
                 print(y.shape)
         #exit(0)
         return x if self.training else (torch.cat(z, 1), x)
