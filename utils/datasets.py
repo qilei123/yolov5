@@ -1163,7 +1163,7 @@ class LoadImagesAndLabels4COCO(LoadImagesAndLabels):
                 if 'Wide' in img['file_name']:
                     img['file_name'] = img['file_name'].replace('andover','andover_wide')# this is for trans_drone only
                 self.img_files.append(os.path.join(images_root,img['file_name']))
-                assert len(boxes)==len(segs),"why"
+                
                 self.labels.append(np.array(boxes, dtype=np.float64))
                 self.segments.append(np.array(segs, dtype=np.float64))
 
@@ -1194,6 +1194,7 @@ class LoadImagesAndLabels4COCO(LoadImagesAndLabels):
                 self.labels[i][:, 0] = 0
                 if segment:
                     self.segments[i][:, 0] = 0
+            assert len(label)==len(segment),"they should be equal"
 
         # Rectangular Training
         if self.rect:
