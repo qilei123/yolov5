@@ -1277,10 +1277,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
 
             labels = self.labels[index].copy()
             segments4 = self.segments[index].copy()
-            for i in range(len(self.labels)):
-                print('---------------')
-                print(self.labels[i].shape)
-                print(self.segments[i].shape)             
+           
             if labels.size:  # normalized xywh to pixel xyxy format
                 labels[:, 1:] = xywhn2xyxy(labels[:, 1:], ratio[0] * w, ratio[1] * h, padw=pad[0], padh=pad[1])
                 segments4 = [xyn2xy(x,ratio[0] * w, ratio[1] * h, padw=pad[0], padh=pad[1]) for x in segments4]
