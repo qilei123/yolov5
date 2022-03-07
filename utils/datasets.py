@@ -1247,6 +1247,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
 
         hyp = self.hyp
         mosaic = self.mosaic and random.random() < hyp['mosaic']
+        print(mosaic)
         if mosaic:
             # Load mosaic
             if hyp['mosaic_n']:
@@ -1319,7 +1320,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
         label_boxes_out = torch.zeros((nl, 6))
         #labels_out = torch.zeros((nl, 1))
         obbs_out = torch.zeros((nl,7))
-        print(segments4.shape)
+
         print(nl)
         print(label.shape)
         if nl:
