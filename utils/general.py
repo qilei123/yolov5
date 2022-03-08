@@ -861,8 +861,9 @@ def non_max_suppression_obb(prediction, conf_thres=0.25, iou_thres=0.45, classes
 
         # Batched NMS
         c = x[:, 6:7] * (0 if agnostic else max_wh)  # classes
-        print(c)
-        boxes, scores = x[:, :4] + c, x[:, 4]  # boxes (offset by class), scores
+        #print(c)
+        boxes, scores = x[:, :5] + c, x[:, 5]  # boxes (offset by class), scores
+        print(boxes)
         i = torchvision.ops.nms(boxes, scores, iou_thres)  # NMS
         if i.shape[0] > max_det:  # limit detections
             i = i[:max_det]
