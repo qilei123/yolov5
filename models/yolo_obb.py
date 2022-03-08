@@ -67,6 +67,7 @@ class DetectOBB(nn.Module):
                     xy = (y[..., 0:2] * 2 - 0.5 + self.grid[i]) * self.stride[i]  # xy
                     wh = (y[..., 2:4] * 2) ** 2 * self.anchor_grid[i]  # wh
                     theta = y[..., 4:5]* 3.1415926/(-2)
+                    print(theta)
                     y = torch.cat((xy, wh, theta,y[..., 5:]), -1)
                 z.append(y.view(bs, -1, self.no))
                 #print('in head2:')
