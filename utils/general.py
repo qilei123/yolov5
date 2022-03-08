@@ -842,6 +842,7 @@ def non_max_suppression_obb(prediction, conf_thres=0.25, iou_thres=0.45, classes
             print(i)
             print(j)
             x = torch.cat((box[i], x[i, j + 5, None], j[:, None].float()), 1)
+            print(x)
         else:  # best class only
             conf, j = x[:, 6:].max(1, keepdim=True)
             x = torch.cat((box, conf, j.float()), 1)[conf.view(-1) > conf_thres]
