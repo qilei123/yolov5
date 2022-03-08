@@ -846,8 +846,8 @@ def non_max_suppression_obb(prediction, conf_thres=0.25, iou_thres=0.45, classes
 
         # Filter by class
         if classes is not None:
-            x = x[(x[:, 5:6] == torch.tensor(classes, device=x.device)).any(1)]
-        print(classes)
+            x = x[(x[:, 6:7] == torch.tensor(classes, device=x.device)).any(1)]
+        
         # Apply finite constraint
         # if not torch.isfinite(x).all():
         #     x = x[torch.isfinite(x).all(1)]
@@ -857,10 +857,11 @@ def non_max_suppression_obb(prediction, conf_thres=0.25, iou_thres=0.45, classes
         if not n:  # no boxes
             continue
         elif n > max_nms:  # excess boxes
-            x = x[x[:, 4].argsort(descending=True)[:max_nms]]  # sort by confidence
+            x = x[x[:, 5].argsort(descending=True)[:max_nms]]  # sort by confidence
 
         # Batched NMS
         c = x[:, 5:6] * (0 if agnostic else max_wh)  # classes
+        print(c)
         boxes, scores = x[:, :4] + c, x[:, 4]  # boxes (offset by class), scores
         i = torchvision.ops.nms(boxes, scores, iou_thres)  # NMS
         if i.shape[0] > max_det:  # limit detections
