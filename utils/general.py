@@ -863,11 +863,12 @@ def non_max_suppression_obb(prediction, conf_thres=0.25, iou_thres=0.45, classes
         c = x[:, 6:7] * (0 if agnostic else max_wh)  # classes
         #print(x)
         #boxes, scores = x[:, :4] + c, x[:, 4]
-        boxes, scores = x[:, :5] , x[:, 5]  # boxes (offset by class), scores
+        boxes, scores = x[:, :2]+c , x[:, 5]  # boxes (offset by class), scores
+        boxes = torch.cat((boxes,x[:,2:5]),1)
         #print(boxes)
         #i = torchvision.ops.nms(boxes, scores, iou_thres)  # NMS
         i = nms_rotated_ext.nms_rotated(boxes, scores, iou_thres)
-        print(i)
+        #print(i)
         if i.shape[0] > max_det:  # limit detections
             i = i[:max_det]
         if merge and (1 < n < 3E3):  # Merge NMS (boxes merged using weighted mean)

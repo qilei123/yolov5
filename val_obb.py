@@ -212,7 +212,7 @@ def run(data,
         #print(out)
         #for i in range(len(out)):
         #    print(out[i].shape)
-        exit(0)
+        #exit(0)
         dt[2] += time_sync() - t3
 
         # Metrics
