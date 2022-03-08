@@ -84,6 +84,7 @@ def process_batch(detections, labels, iouv):
     iou = obb_overlaps(labels[:, 1:], detections[:, :5])
     print(iou)
     x = torch.where((iou >= iouv[0]) & (labels[:, 0:1] == detections[:, 5]))  # IoU above threshold and classes match
+    print(x)
     if x[0].shape[0]:
         matches = torch.cat((torch.stack(x, 1), iou[x[0], x[1]][:, None]), 1).cpu().numpy()  # [label, detection, iou]
         if x[0].shape[0] > 1:
