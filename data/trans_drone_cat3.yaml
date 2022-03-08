@@ -8,8 +8,8 @@
 
 
 # Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
-#path: /data3/qilei_chen/DATA/trans_drone  # dataset root dir #this is for server 66
-path: /home/qilei/DATASETS/trans_drone/andover_worster # this is for prof. Xie's server
+path: /data3/qilei_chen/DATA/trans_drone  # dataset root dir #this is for server 66
+#path: /home/qilei/DATASETS/trans_drone/andover_worster # this is for prof. Xie's server
 train: annotations/train_AW_obb.json  # train annotations (relative to 'path') 
 val: annotations/test_AW_obb.json  # val annotations (relative to 'path') 
 test: annotations/test_AW_obb.json  # test images (optional)
