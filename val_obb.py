@@ -19,6 +19,7 @@ Usage - formats:
 """
 
 import argparse
+from cProfile import label
 import json
 import os
 import sys
@@ -28,7 +29,7 @@ from threading import Thread
 import numpy as np
 import torch
 from tqdm import tqdm
-
+from models.ops import obb_overlaps
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[0]  # YOLOv5 root directory
 if str(ROOT) not in sys.path:
@@ -79,7 +80,8 @@ def process_batch(detections, labels, iouv):
         correct (Array[N, 10]), for 10 IoU levels
     """
     correct = torch.zeros(detections.shape[0], iouv.shape[0], dtype=torch.bool, device=iouv.device)
-    iou = box_iou(labels[:, 1:], detections[:, :4])
+    #iou = box_iou(labels[:, 1:], detections[:, :4])
+    iou = obb_overlaps(labels[:, 1:], detections[:, :5])
     x = torch.where((iou >= iouv[0]) & (labels[:, 0:1] == detections[:, 5]))  # IoU above threshold and classes match
     if x[0].shape[0]:
         matches = torch.cat((torch.stack(x, 1), iou[x[0], x[1]][:, None]), 1).cpu().numpy()  # [label, detection, iou]
@@ -212,7 +214,7 @@ def run(data,
         #print(out)
         #for i in range(len(out)):
         #    print(out[i].shape)
-        exit(0)
+        #exit(0)
         dt[2] += time_sync() - t3
 
         # Metrics
@@ -230,13 +232,14 @@ def run(data,
 
             # Predictions
             if single_cls:
-                pred[:, 5] = 0
+                pred[:, 6] = 0
             predn = pred.clone()
             scale_coords(im[si].shape[1:], predn[:, :4], shape, shapes[si][1])  # native-space pred
 
             # Evaluate
             if nl:
-                tbox = xywh2xyxy(labels[:, 1:5])
+                #tbox = xywh2xyxy(labels[:, 1:5])
+                tbox = labels[:,1:6]
                 scale_coords(im[si].shape[1:], tbox, shape, shapes[si][1])  # native-space labels
                 labelsn = torch.cat((labels[:, 0:1], tbox), 1)  # native-space labels
                 correct = process_batch(predn, labelsn, iouv)
@@ -244,7 +247,7 @@ def run(data,
                     confusion_matrix.process_batch(predn, labelsn)
             else:
                 correct = torch.zeros(pred.shape[0], niou, dtype=torch.bool)
-            stats.append((correct.cpu(), pred[:, 4].cpu(), pred[:, 5].cpu(), tcls))  # (correct, conf, pcls, tcls)
+            stats.append((correct.cpu(), pred[:, 5].cpu(), pred[:, 6].cpu(), tcls))  # (correct, conf, pcls, tcls)
 
             # Save/log
             if save_txt:

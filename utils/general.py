@@ -33,6 +33,7 @@ from utils.downloads import gsutil_getsize
 from utils.metrics import box_iou, fitness
 
 from models.ops import nms_rotated_ext
+from models.ops import obb_overlaps
 
 # Settings
 FILE = Path(__file__).resolve()
@@ -865,16 +866,16 @@ def non_max_suppression_obb(prediction, conf_thres=0.25, iou_thres=0.45, classes
         #boxes, scores = x[:, :4] + c, x[:, 4]
         boxes, scores = x[:, :2]+c , x[:, 5]  # boxes (offset by class), scores
         boxes = torch.cat((boxes,x[:,2:5]),1)
-        print(boxes)
+        #print(boxes)
         #i = torchvision.ops.nms(boxes, scores, iou_thres)  # NMS
         i = nms_rotated_ext.nms_rotated(boxes, scores, iou_thres)
-        print(i.shape)
-        print(i)
+        #print(i.shape)
+        #print(i)
         if i.shape[0] > max_det:  # limit detections
             i = i[:max_det]
         if merge and (1 < n < 3E3):  # Merge NMS (boxes merged using weighted mean)
             # update boxes as boxes(i,4) = weights(i,n) * boxes(n,4)
-            iou = box_iou(boxes[i], boxes) > iou_thres  # iou matrix
+            iou = obb_overlaps(boxes[i], boxes) > iou_thres  # iou matrix
             weights = iou * scores[None]  # box weights
             x[i, :4] = torch.mm(weights, x[:, :4]).float() / weights.sum(1, keepdim=True)  # merged boxes
             if redundant:
