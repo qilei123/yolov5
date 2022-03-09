@@ -237,7 +237,9 @@ def run(data,
                 pred[:, 6] = 0
             predn = pred.clone()
             scale_coords(im[si].shape[1:], predn[:, :4], shape, shapes[si][1])  # native-space pred
-
+            print('------after scale------')
+            print(predn)
+            exit(0)
             # Evaluate
             if nl:
                 #tbox = xywh2xyxy(labels[:, 1:5])
