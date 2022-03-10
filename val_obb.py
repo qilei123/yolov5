@@ -213,7 +213,7 @@ def run(data,
         out = non_max_suppression_obb(out, conf_thres, iou_thres, labels=lb, multi_label=True, agnostic=True)
         #out = obb_nms(out,iou_thres)
         print('after nms:')
-        print(out.shape)
+        #print(out.shape)
         print(out)
         #for i in range(len(out)):
         #    print(out[i].shape)
