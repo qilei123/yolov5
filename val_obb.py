@@ -210,7 +210,7 @@ def run(data,
         #print('after model')
         #print(out.shape)
         print(single_cls)
-        out = non_max_suppression_obb(out, conf_thres, iou_thres=0.25, labels=lb, multi_label=True, agnostic=True)
+        out = non_max_suppression_obb(out, conf_thres=0.25, iou_thres, labels=lb, multi_label=True, agnostic=single_cls)
         #out = obb_nms(out,iou_thres)
         print('after nms:')
         print(out[0].shape)
