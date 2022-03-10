@@ -209,6 +209,7 @@ def run(data,
         t3 = time_sync()
         #print('after model')
         #print(out.shape)
+        print(single_cls)
         out = non_max_suppression_obb(out, conf_thres, iou_thres, labels=lb, multi_label=True, agnostic=single_cls)
         #out = obb_nms(out,iou_thres)
         #print('after nms:')
