@@ -812,7 +812,7 @@ def non_max_suppression_obb(prediction, conf_thres=0.25, iou_thres=0.45, classes
     Returns:
          list of detections, on (n,7) tensor per image [x y x y theta, conf, cls]
     """
-    conf_thres=0.25
+    #conf_thres=0.25
     nc = prediction.shape[2] - 6  # number of classes
     xc = prediction[..., 5] > conf_thres  # candidates
 
