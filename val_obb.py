@@ -41,7 +41,7 @@ from utils.callbacks import Callbacks
 from utils.datasets import create_dataloader,create_dataloader_obb
 from utils.general import (LOGGER, box_iou, check_dataset, check_img_size, check_requirements, check_yaml,
                            coco80_to_coco91_class, colorstr, increment_path, non_max_suppression, print_args,
-                           scale_coords, xywh2xyxy, xywh2xyxy1, xyxy2xywh,non_max_suppression_obb)
+                           scale_coords, scale_coords_obb, xywh2xyxy, xywh2xyxy1, xyxy2xywh,non_max_suppression_obb)
 from utils.metrics import ConfusionMatrix, ap_per_class
 from utils.plots import output_to_target, plot_images, plot_val_study
 from utils.torch_utils import select_device, time_sync
@@ -214,11 +214,11 @@ def run(data,
         out = non_max_suppression_obb(out, conf_thres, iou_thres, labels=lb, multi_label=True, agnostic=single_cls)
         #out = obb_nms(out,iou_thres)
         print('after nms:')
-        print(out[0].shape)
-        print(out)
+        #print(out[0].shape)
+        #print(out)
         #for i in range(len(out)):
         #    print(out[i].shape)
-        exit(0)
+        #exit(0)
         dt[2] += time_sync() - t3
         #print(out)
         # Metrics
@@ -238,10 +238,10 @@ def run(data,
             if single_cls:
                 pred[:, 6] = 0
             predn = pred.clone()
-            scale_coords(im[si].shape[1:], predn[:, :4], shape, shapes[si][1])  # native-space pred
+            scale_coords_obb(im[si].shape[1:], predn[:, :4], shape, shapes[si][1])  # native-space pred
             #print('------after scale------')
-            #print(predn)
-            #exit(0)
+            print(predn)
+            exit(0)
             # Evaluate
             nl=0 #debug train only
             if nl:
