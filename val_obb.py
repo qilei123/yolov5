@@ -218,7 +218,7 @@ def run(data,
         #    print(out[i].shape)
         #exit(0)
         dt[2] += time_sync() - t3
-        print(out)
+        #print(out)
         # Metrics
         for si, pred in enumerate(out):
             labels = targets[targets[:, 0] == si, 1:]
@@ -237,9 +237,9 @@ def run(data,
                 pred[:, 6] = 0
             predn = pred.clone()
             scale_coords(im[si].shape[1:], predn[:, :4], shape, shapes[si][1])  # native-space pred
-            print('------after scale------')
-            print(predn)
-            exit(0)
+            #print('------after scale------')
+            #print(predn)
+            #exit(0)
             # Evaluate
             if nl:
                 #tbox = xywh2xyxy(labels[:, 1:5])
