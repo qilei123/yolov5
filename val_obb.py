@@ -241,6 +241,7 @@ def run(data,
             #print(predn)
             #exit(0)
             # Evaluate
+            n1=0
             if nl:
                 #tbox = xywh2xyxy(labels[:, 1:5])
                 tbox = labels[:,1:6]
