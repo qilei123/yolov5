@@ -667,8 +667,8 @@ def resample_segments(segments, n=1000):
 
 def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None):
     # Rescale coords (xyxy) from img1_shape to img0_shape
-    print(img0_shape)
-    print(img1_shape)
+    #print(img0_shape)
+    #print(img1_shape)
     if ratio_pad is None:  # calculate from img0_shape
         gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
         pad = (img1_shape[1] - img0_shape[1] * gain) / 2, (img1_shape[0] - img0_shape[0] * gain) / 2  # wh padding
@@ -682,6 +682,22 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None):
     clip_coords(coords, img0_shape)
     return coords
 
+def scale_coords_obb(img1_shape, coords, img0_shape, ratio_pad=None):
+    # Rescale coords (xyxy) from img1_shape to img0_shape
+    #print(img0_shape)
+    #print(img1_shape)
+    if ratio_pad is None:  # calculate from img0_shape
+        gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
+        pad = (img1_shape[1] - img0_shape[1] * gain) / 2, (img1_shape[0] - img0_shape[0] * gain) / 2  # wh padding
+    else:
+        gain = ratio_pad[0][0]
+        pad = ratio_pad[1]
+
+    coords[:, [0, 2]] -= pad[0]  # x padding
+    coords[:, [1, 3]] -= pad[1]  # y padding
+    coords[:, :4] /= gain
+    clip_coords(coords, img0_shape)
+    return coords
 
 def clip_coords(boxes, shape):
     # Clip bounding xyxy bounding boxes to image shape (height, width)
@@ -864,16 +880,13 @@ def non_max_suppression_obb(prediction, conf_thres=0.25, iou_thres=0.45, classes
 
         # Batched NMS
         c = x[:, 6:7] * (0 if agnostic else max_wh)  # classes
-        #print(x)
-        #boxes, scores = x[:, :4] + c, x[:, 4]
-        #boxes, scores = x[:, :2]+c , x[:, 5]  # boxes (offset by class), scores
-        #boxes = torch.cat((boxes,x[:,2:5]),1)
-        boxes, scores = x[:, :5] + c, x[:, 5]
+        boxes, scores = x[:, :2]+c , x[:, 5]  # boxes (offset by class), scores
+        boxes = torch.cat((boxes,x[:,2:5]),1)
+        #boxes, scores = x[:, :5], x[:, 5]
         #print(boxes)
         #i = torchvision.ops.nms(boxes, scores, iou_thres)  # NMS
         i = nms_rotated_ext.nms_rotated(boxes, scores, iou_thres)
-        print(i.shape)
-        print(i)
+
         if i.shape[0] > max_det:  # limit detections
             i = i[:max_det]
         
@@ -889,7 +902,7 @@ def non_max_suppression_obb(prediction, conf_thres=0.25, iou_thres=0.45, classes
         if (time.time() - t) > time_limit:
             LOGGER.warning(f'WARNING: NMS time limit {time_limit}s exceeded')
             break  # time limit exceeded
-        print(x[i])
+
     return output
 
 def strip_optimizer(f='best.pt', s=''):  # from utils.general import *; strip_optimizer()
