@@ -218,7 +218,7 @@ def run(data,
         #    print(out[i].shape)
         #exit(0)
         dt[2] += time_sync() - t3
-
+        print(out)
         # Metrics
         for si, pred in enumerate(out):
             labels = targets[targets[:, 0] == si, 1:]
