@@ -35,6 +35,7 @@ def obb_overlaps(bboxes1, bboxes2, mode='iou', is_aligned=False, device_id=None)
         outputs = box_iou_rotated_ext.overlaps(
             bboxes1_th, bboxes2_th, mode == 'iou')
         # same bug will happen when bbox size is to small
+        '''
         too_small1 = bboxes1_th[:, [2, 3]].min(1)[0] < 0.001
         too_small2 = bboxes2_th[:, [2, 3]].min(1)[0] < 0.001
         if too_small1.any() or too_small2.any():
@@ -42,7 +43,7 @@ def obb_overlaps(bboxes1, bboxes2, mode='iou', is_aligned=False, device_id=None)
             inds2 = torch.nonzero(too_small2, as_tuple=False)
             outputs[inds1, :] = 0.
             outputs[:, inds2] = 0.
-
+        '''
     if is_numpy:
         outputs = outputs.cpu().numpy()
     return outputs

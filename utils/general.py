@@ -683,7 +683,7 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None):
     return coords
 
 def scale_coords_obb(img1_shape, coords, img0_shape, ratio_pad=None):
-    # Rescale coords (xyxy) from img1_shape to img0_shape
+    # Rescale coords (xywh)) from img1_shape to img0_shape
     #print(img0_shape)
     #print(img1_shape)
     if ratio_pad is None:  # calculate from img0_shape
@@ -693,8 +693,8 @@ def scale_coords_obb(img1_shape, coords, img0_shape, ratio_pad=None):
         gain = ratio_pad[0][0]
         pad = ratio_pad[1]
 
-    coords[:, [0, 2]] -= pad[0]  # x padding
-    coords[:, [1, 3]] -= pad[1]  # y padding
+    coords[:, [0]] -= pad[0]  # x padding
+    coords[:, [1]] -= pad[1]  # y padding
     coords[:, :4] /= gain
     clip_coords(coords, img0_shape)
     return coords
