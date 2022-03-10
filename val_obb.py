@@ -215,7 +215,7 @@ def run(data,
         #out = obb_nms(out,iou_thres)
         print('after nms:')
         #print(out[0].shape)
-        #print(out)
+        print(out)
         #for i in range(len(out)):
         #    print(out[i].shape)
         #exit(0)
