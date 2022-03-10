@@ -210,14 +210,14 @@ def run(data,
         #print('after model')
         #print(out.shape)
         print(single_cls)
-        out = non_max_suppression_obb(out, conf_thres, iou_thres, labels=lb, multi_label=True, agnostic=single_cls)
+        out = non_max_suppression_obb(out, conf_thres, iou_thres, labels=lb, multi_label=True, agnostic=True)
         #out = obb_nms(out,iou_thres)
-        #print('after nms:')
-        #print(out.shape)
-        #print(out)
+        print('after nms:')
+        print(out.shape)
+        print(out)
         #for i in range(len(out)):
         #    print(out[i].shape)
-        #exit(0)
+        exit(0)
         dt[2] += time_sync() - t3
         #print(out)
         # Metrics
