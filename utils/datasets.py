@@ -698,7 +698,7 @@ class LoadImagesAndLabels(Dataset):
                 im = np.load(npy)
             else:  # read image
                 f = self.img_files[i]
-                #print(f)
+                print(f)
                 im = cv2.imread(f)  # BGR
                 assert im is not None, f'Image Not Found {f}'
             h0, w0 = im.shape[:2]  # orig hw
