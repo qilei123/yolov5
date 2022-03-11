@@ -126,7 +126,7 @@ def run(data,
         model=None,
         dataloader=None,
         save_dir=Path(''),
-        plots=False,
+        plots=True,
         callbacks=Callbacks(),
         compute_loss=None,
         ):
