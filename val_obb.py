@@ -227,6 +227,7 @@ def run(data,
         for si, pred in enumerate(out):
             labels = obb_targets[obb_targets[:, 0] == si, 1:]
             print("labels:")
+            print(labels.shape)
             print(labels)
             nl = len(labels)
             tcls = labels[:, 0].tolist() if nl else []  # target class
