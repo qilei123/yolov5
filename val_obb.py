@@ -40,7 +40,7 @@ from models.common import DetectMultiBackend
 from utils.callbacks import Callbacks
 from utils.datasets import create_dataloader,create_dataloader_obb
 from utils.general import (LOGGER, box_iou, check_dataset, check_img_size, check_requirements, check_yaml,
-                           coco80_to_coco91_class, colorstr, increment_path, non_max_suppression, print_args,
+                           coco80_to_coco91_class, colorstr, increment_path, non_max_suppression, print_args, regular_obb,
                            scale_coords, scale_coords_obb, xywh2xyxy, xywh2xyxy1, xyxy2xywh,non_max_suppression_obb)
 from utils.metrics import ConfusionMatrix, ap_per_class
 from utils.plots import output_to_target, plot_images, plot_val_study
@@ -247,6 +247,7 @@ def run(data,
                 pred[:, 6] = 0
             #print(pred)
             predn = pred.clone()
+            
             scale_coords_obb(im[si].shape[1:], predn[:, :4], shape, shapes[si][1])  # native-space pred
             #print('------after scale------')
             #print(predn)

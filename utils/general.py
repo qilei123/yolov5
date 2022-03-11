@@ -813,6 +813,7 @@ def non_max_suppression_obb(prediction, conf_thres=0.25, iou_thres=0.45, classes
          list of detections, on (n,7) tensor per image [x y x y theta, conf, cls]
     """
     #conf_thres=0.25
+    
     nc = prediction.shape[2] - 6  # number of classes
     xc = prediction[..., 5] > conf_thres  # candidates
 
@@ -834,7 +835,8 @@ def non_max_suppression_obb(prediction, conf_thres=0.25, iou_thres=0.45, classes
         # Apply constraints
         x[((x[..., 2:4] < min_wh) | (x[..., 2:4] > max_wh)).any(1), 5] = 0  # width-height
         x = x[xc[xi]]  # confidence
-        #print(x.shape)
+        x[...,:5] = regular_obb(x[...,:5])
+        print(x.shape)
         # Cat apriori labels if autolabelling
         if labels and len(labels[xi]):
             lb = labels[xi]
