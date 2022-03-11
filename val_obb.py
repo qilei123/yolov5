@@ -229,6 +229,7 @@ def run(data,
             print("labels:")
             print(labels.shape)
             print(labels)
+            print('----------')
             nl = len(labels)
             tcls = labels[:, 0].tolist() if nl else []  # target class
             path, shape = Path(paths[si]), shapes[si][0]
