@@ -1075,7 +1075,7 @@ def poly2obb(polys):
         obboxes = np.zeros((0, 5))
     else:
         obboxes = np.array(obboxes)
-
+    print(obboxes)
     obboxes = regular_obb(obboxes)
     print("poly2obb")
     print(obboxes)
