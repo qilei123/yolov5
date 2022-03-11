@@ -81,10 +81,11 @@ def process_batch(detections, labels, iouv):
     """
     correct = torch.zeros(detections.shape[0], iouv.shape[0], dtype=torch.bool, device=iouv.device)
     #iou = box_iou(labels[:, 1:], detections[:, :4])
-    #print(labels)
-    #print(detections)
+    print(labels)
+    print(detections)
     iou = obb_overlaps(labels[:, 1:], detections[:, :5])
-    #print(iou)
+    print(iou)
+    exit(0)
     x = torch.where((iou >= iouv[0]) & (labels[:, 0:1] == detections[:, 5]))  # IoU above threshold and classes match
     #print(x)
     if x[0].shape[0]:
