@@ -347,8 +347,8 @@ def run(data,
     maps = np.zeros(nc) + map
     for i, c in enumerate(ap_class):
         maps[c] = ap[i]
-    print('return val')
-    print((mp, mr, map50, map))
+    #print('return val')
+    #print((mp, mr, map50, map))
     return (mp, mr, map50, map, *(loss.cpu() / len(dataloader)).tolist()), maps, t
 
 
