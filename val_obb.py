@@ -81,6 +81,8 @@ def process_batch(detections, labels, iouv):
     """
     correct = torch.zeros(detections.shape[0], iouv.shape[0], dtype=torch.bool, device=iouv.device)
     #iou = box_iou(labels[:, 1:], detections[:, :4])
+    print(labels)
+    print(detections)
     iou = obb_overlaps(labels[:, 1:], detections[:, :5])
     print(iou)
     x = torch.where((iou >= iouv[0]) & (labels[:, 0:1] == detections[:, 5]))  # IoU above threshold and classes match
@@ -251,6 +253,7 @@ def run(data,
                 scale_coords(im[si].shape[1:], tbox, shape, shapes[si][1])  # native-space labels
                 labelsn = torch.cat((labels[:, 0:1], tbox), 1)  # native-space labels
                 correct = process_batch(predn, labelsn, iouv)
+                exit(0)
                 if plots:
                     confusion_matrix.process_batch(predn, labelsn)
             else:
