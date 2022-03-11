@@ -225,7 +225,7 @@ def run(data,
         #print(out)
         # Metrics
         for si, pred in enumerate(out):
-            labels = targets[targets[:, 0] == si, 1:]
+            labels = obb_targets[obb_targets[:, 0] == si, 1:]
             print(labels)
             nl = len(labels)
             tcls = labels[:, 0].tolist() if nl else []  # target class
