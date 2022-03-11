@@ -226,10 +226,10 @@ def run(data,
         # Metrics
         for si, pred in enumerate(out):
             labels = obb_targets[obb_targets[:, 0] == si, 1:]
-            print("labels:")
-            print(labels.shape)
-            print(labels)
-            print('----------')
+            #print("labels:")
+            #print(labels.shape)
+            #print(labels)
+            #print('----------')
             nl = len(labels)
             tcls = labels[:, 0].tolist() if nl else []  # target class
             path, shape = Path(paths[si]), shapes[si][0]
@@ -257,6 +257,7 @@ def run(data,
                 scale_coords_obb(im[si].shape[1:], tbox, shape, shapes[si][1])  # native-space labels
                 labelsn = torch.cat((labels[:, 0:1], tbox), 1)  # native-space labels
                 print(labelsn)
+                print('before process_batch')
                 correct = process_batch(predn, labelsn, iouv)
                 exit(0)
                 if plots:
