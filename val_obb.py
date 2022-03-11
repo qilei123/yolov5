@@ -237,11 +237,11 @@ def run(data,
             # Predictions
             if single_cls:
                 pred[:, 6] = 0
-            print(pred)
+            #print(pred)
             predn = pred.clone()
             scale_coords_obb(im[si].shape[1:], predn[:, :4], shape, shapes[si][1])  # native-space pred
             #print('------after scale------')
-            print(predn)
+            #print(predn)
             exit(0)
             # Evaluate
             nl=0 #debug train only
