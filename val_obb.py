@@ -209,13 +209,13 @@ def run(data,
         t3 = time_sync()
         #print('after model')
         #print(out.shape)
-        print(single_cls)
+        #print(single_cls)
         conf_thres=0.25
         out = non_max_suppression_obb(out, conf_thres, iou_thres, labels=lb, multi_label=True, agnostic=single_cls)
         #out = obb_nms(out,iou_thres)
-        print('after nms:')
+        #print('after nms:')
         #print(out[0].shape)
-        print(out)
+        #print(out)
         #for i in range(len(out)):
         #    print(out[i].shape)
         #exit(0)
@@ -242,9 +242,9 @@ def run(data,
             scale_coords_obb(im[si].shape[1:], predn[:, :4], shape, shapes[si][1])  # native-space pred
             #print('------after scale------')
             #print(predn)
-            exit(0)
+            #exit(0)
             # Evaluate
-            nl=0 #debug train only
+            #nl=0 #debug train only
             if nl:
                 #tbox = xywh2xyxy(labels[:, 1:5])
                 tbox = labels[:,1:6]
