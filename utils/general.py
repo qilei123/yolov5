@@ -1069,7 +1069,7 @@ def poly2obb(polys):
         #print(angle)
         #angle = -angle
         #print(angle)
-        theta = angle / 180 * pi
+        theta = angle / 180 * pi  #[0,pi/2]
         
         obboxes.append([x, y, w, h, theta])
 
@@ -1077,10 +1077,10 @@ def poly2obb(polys):
         obboxes = np.zeros((0, 5))
     else:
         obboxes = np.array(obboxes)
-    print(obboxes)
+    #print(obboxes)
     obboxes = regular_obb(obboxes)
-    print("poly2obb")
-    print(obboxes)
+    #print("poly2obb")
+    #print(obboxes)
     return obboxes
 
 def obb2poly(obboxes):
