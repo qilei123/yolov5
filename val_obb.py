@@ -251,7 +251,7 @@ def run(data,
             #print(predn)
             #exit(0)
             # Evaluate
-            nl=0 #debug train only
+            #nl=0 #debug train only
             if nl:
                 #tbox = xywh2xyxy(labels[:, 1:5])
                 tbox = labels[:,1:6]
