@@ -212,7 +212,7 @@ def run(data,
         #print('after model')
         #print(out.shape)
         #print(single_cls)
-        conf_thres=0.25
+        #conf_thres=0.25
         out = non_max_suppression_obb(out, conf_thres, iou_thres, labels=lb, multi_label=True, agnostic=single_cls)
         #out = obb_nms(out,iou_thres)
         #print('after nms:')
@@ -252,6 +252,7 @@ def run(data,
                 tbox = labels[:,1:6]
                 scale_coords(im[si].shape[1:], tbox, shape, shapes[si][1])  # native-space labels
                 labelsn = torch.cat((labels[:, 0:1], tbox), 1)  # native-space labels
+                print(labelsn)
                 correct = process_batch(predn, labelsn, iouv)
                 exit(0)
                 if plots:
