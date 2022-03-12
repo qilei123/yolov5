@@ -1283,6 +1283,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
                 labels[:, 1:] = xywhn2xyxy(labels[:, 1:], ratio[0] * w, ratio[1] * h, padw=pad[0], padh=pad[1])
                 segments4 = [xyn2xy(x,ratio[0] * w, ratio[1] * h, padw=pad[0], padh=pad[1]) for x in segments4]
             print(self.augment)
+            exit(0)
             if self.augment:
                 img, labels, segments4 = random_perspective_segs(img, labels,segments4,
                                                  degrees=hyp['degrees'],
