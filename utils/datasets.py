@@ -707,7 +707,7 @@ class LoadImagesAndLabels(Dataset):
                 im = cv2.resize(im,
                                 (int(w0 * r), int(h0 * r)),
                                 interpolation=cv2.INTER_LINEAR if (self.augment or r > 1) else cv2.INTER_AREA)
-            print(im.shape)
+            
             return im, (h0, w0), im.shape[:2]  # im, hw_original, hw_resized
         else:
             return self.imgs[i], self.img_hw0[i], self.img_hw[i]  # im, hw_original, hw_resized
@@ -1402,7 +1402,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
                                            border=self.mosaic_border)  # border to remove
         
         #obb_labels4 = poly2obb(segments4)
-
+        print(img4.shape)
         return img4, labels4, segments4 
 
     @staticmethod
