@@ -1402,8 +1402,8 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
                                            border=self.mosaic_border)  # border to remove
         
         #obb_labels4 = poly2obb(segments4)
-        print('img4.shape')
-        print(img4.shape)
+        #print('img4.shape')
+        #print(img4.shape)
         return img4, labels4, segments4 
 
     @staticmethod
