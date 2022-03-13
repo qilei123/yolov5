@@ -707,7 +707,6 @@ class LoadImagesAndLabels(Dataset):
                 im = cv2.resize(im,
                                 (int(w0 * r), int(h0 * r)),
                                 interpolation=cv2.INTER_LINEAR if (self.augment or r > 1) else cv2.INTER_AREA)
-            print(im.shape)
             return im, (h0, w0), im.shape[:2]  # im, hw_original, hw_resized
         else:
             return self.imgs[i], self.img_hw0[i], self.img_hw[i]  # im, hw_original, hw_resized
@@ -1275,6 +1274,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
             # Letterbox
             shape = self.batch_shapes[self.batch[index]] if self.rect else self.img_size  # final letterboxed shape
             img, ratio, pad = letterbox(img, shape, auto=False, scaleup=self.augment)
+            print(img.shape)
             shapes = (h0, w0), ((h / h0, w / w0), pad)  # for COCO mAP rescaling
 
             labels = self.labels[index].copy()
@@ -1342,7 +1342,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
         img = img.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
         img = np.ascontiguousarray(img)
         #print('input shape')
-        print(img.shape)
+        #print(img.shape)
         return torch.from_numpy(img), label_boxes_out, self.img_files[index], shapes, obbs_out
 
     def load_mosaic(self, index):
