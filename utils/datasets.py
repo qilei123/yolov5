@@ -1262,7 +1262,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
 
             img, labels, segments4 = mosaic_fun(index)
             shapes = None
-
+            print(img.shape)
             # MixUp augmentation
             if random.random() < hyp['mixup']:
                 img, labels, segments4 = mixup_poly(img, labels, segments4, *mosaic_fun(random.randint(0, self.n - 1)))
