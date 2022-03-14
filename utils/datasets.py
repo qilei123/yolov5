@@ -1226,10 +1226,11 @@ class LoadImagesAndLabels4COCO(LoadImagesAndLabels):
                     shapes[i] = [maxi, 1]
                 elif mini > 1:
                     shapes[i] = [1, 1 / mini]
-            print(shapes)
-            print(pad)
+            #print(shapes)
+            #print(pad)
+            #print(np.ceil(np.array(shapes) * img_size / stride + pad))
             self.batch_shapes = np.ceil(np.array(shapes) * img_size / stride + pad).astype(np.int) * stride
-            print(self.batch_shapes)
+            #print(self.batch_shapes)
         # Cache images into RAM/disk for faster training (WARNING: large datasets may exceed system resources)
         self.imgs, self.img_npy = [None] * n, [None] * n
         if cache_images:
@@ -1304,7 +1305,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
                                                  scale=hyp['scale'],
                                                  shear=hyp['shear'],
                                                  perspective=hyp['perspective'])
-
+        show_segs(img,segments4)
         nl = len(labels)  # number of labels
         if nl:
             labels[:, 1:5] = xyxy2xywhn(labels[:, 1:5], w=img.shape[1], h=img.shape[0], clip=True, eps=1E-3)
@@ -1341,10 +1342,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
         label_boxes_out = torch.zeros((nl, 6))
         #labels_out = torch.zeros((nl, 1))
         obbs_out = torch.zeros((nl,7))
-
         
-        show_segs(img,segments4)
-        exit(0)
         if nl:
             obbs = poly2obb(segments4)
             label_boxes_out[:, 1:] = torch.from_numpy(labels)
