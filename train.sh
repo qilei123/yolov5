@@ -10,7 +10,7 @@ root_dir2=/data3/qilei_chen
 python train_obb.py --exist-ok \
                     --device 0 \
                     --img 1280 \
-                    --batch 1 \
+                    --batch 32 \
                     --epochs 64 \
                     --hyp data/hyps/hyp.scratch_td.yaml \
                     --cfg models/yolov5s_obb.yaml \
