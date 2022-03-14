@@ -1342,8 +1342,8 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
         # Convert
         img = img.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
         img = np.ascontiguousarray(img)
-        #print('input shape')
-        #print(img.shape)
+        print('input shape')
+        print(img.shape)
         return torch.from_numpy(img), label_boxes_out, self.img_files[index], shapes, obbs_out
 
     def load_mosaic(self, index):
