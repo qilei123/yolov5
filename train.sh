@@ -9,7 +9,7 @@ root_dir2=/data3/qilei_chen
 
 python train_obb.py --exist-ok \
                     --device 0 \
-                    --img 1280 \ 
+                    --img 1280 \
                     --batch 1 \
                     --epochs 64 \
                     --hyp data/hyps/hyp.scratch_td.yaml \
