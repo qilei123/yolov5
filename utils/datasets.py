@@ -1227,6 +1227,7 @@ class LoadImagesAndLabels4COCO(LoadImagesAndLabels):
                 elif mini > 1:
                     shapes[i] = [1, 1 / mini]
             print(shapes)
+            print(pad)
             self.batch_shapes = np.ceil(np.array(shapes) * img_size / stride + pad).astype(np.int) * stride
 
         # Cache images into RAM/disk for faster training (WARNING: large datasets may exceed system resources)
