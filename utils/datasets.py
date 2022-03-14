@@ -1275,7 +1275,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
             # Letterbox
             shape = self.batch_shapes[self.batch[index]] if self.rect else self.img_size  # final letterboxed shape
             img, ratio, pad = letterbox(img, shape, auto=False, scaleup=self.augment)
-            #print(img.shape)
+            print(img.shape)
             shapes = (h0, w0), ((h / h0, w / w0), pad)  # for COCO mAP rescaling
 
             labels = self.labels[index].copy()
