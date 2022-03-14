@@ -1114,6 +1114,7 @@ class LoadImagesAndLabels4COCO(LoadImagesAndLabels):
         self.hyp = hyp
         self.image_weights = image_weights
         self.rect = False if image_weights else rect
+        print(path)
         print(self.image_weights)
         print(self.rect)
         self.mosaic = self.augment and not self.rect  # load 4 images at a time into a mosaic (only during training)
@@ -1278,7 +1279,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
             
             # Letterbox
             shape = self.batch_shapes[self.batch[index]] if self.rect else self.img_size  # final letterboxed shape
-            print(self.batch_shapes)
+            #print(self.batch_shapes)
             print(shape)
             print(self.augment)
             img, ratio, pad = letterbox(img, shape, auto=False, scaleup=self.augment)
