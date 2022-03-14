@@ -1283,7 +1283,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
             # Letterbox
             shape = self.batch_shapes[self.batch[index]] if self.rect else self.img_size  # final letterboxed shape
             #print(self.batch_shapes)
-            #print(shape)
+            print(shape)
             #print(self.augment)
             img, ratio, pad = letterbox(img, shape, auto=False, scaleup=self.augment)
             print(pad)
