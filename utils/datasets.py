@@ -38,6 +38,8 @@ from utils.general import (DATASETS_DIR, LOGGER, NUM_THREADS, check_dataset, che
                            segments2boxes, xyn2xy, xywh2xyxy, xywhn2xyxy, xyxy2xywhn, poly2obb,xy2xyn)
 from utils.torch_utils import torch_distributed_zero_first
 
+from util_plot import *
+
 # Parameters
 HELP_URL = 'https://github.com/ultralytics/yolov5/wiki/Train-Custom-Data'
 IMG_FORMATS = ['bmp', 'dng', 'jpeg', 'jpg', 'mpo', 'png', 'tif', 'tiff', 'webp']  # include image suffixes
@@ -1339,7 +1341,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
         #labels_out = torch.zeros((nl, 1))
         obbs_out = torch.zeros((nl,7))
 
-        from util_plot import *
+        
         show_segs(img,segments4)
         exit(0)
         if nl:
