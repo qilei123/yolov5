@@ -1119,7 +1119,7 @@ class LoadImagesAndLabels4COCO(LoadImagesAndLabels):
         print(path)
         print(self.image_weights)
         print(self.rect)
-        self.mosaic = self.augment and not self.rect  # load 4 images at a time into a mosaic (only during training)
+        self.mosaic = self.augment #and not self.rect  # load 4 images at a time into a mosaic (only during training)
         self.mosaic_border = [-img_size // 2, -img_size // 2]
         self.stride = stride
         self.path = path
@@ -1260,7 +1260,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
 
         hyp = self.hyp
         mosaic = self.mosaic and random.random() < hyp['mosaic']
-        #print(mosaic)
+        print(mosaic)
         if mosaic:
             # Load mosaic
             if hyp['mosaic_n']:
