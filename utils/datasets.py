@@ -1116,9 +1116,9 @@ class LoadImagesAndLabels4COCO(LoadImagesAndLabels):
         self.hyp = hyp
         self.image_weights = image_weights
         self.rect = False if image_weights else rect
-        print(path)
-        print(self.image_weights)
-        print(self.rect)
+        #print(path)
+        #print(self.image_weights)
+        #print(self.rect)
         self.mosaic = self.augment #and not self.rect  # load 4 images at a time into a mosaic (only during training)
         self.mosaic_border = [-img_size // 2, -img_size // 2]
         self.stride = stride
@@ -1343,7 +1343,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
         #labels_out = torch.zeros((nl, 1))
         obbs_out = torch.zeros((nl,7))
         
-        show_segs(img,np.array([xyn2xy(x, w=img.shape[1], h=img.shape[0]) for x in segments4]))
+        #show_segs(img,np.array([xyn2xy(x, w=img.shape[1], h=img.shape[0]) for x in segments4]))
         if nl:
             obbs = poly2obb(segments4)
             label_boxes_out[:, 1:] = torch.from_numpy(labels)
