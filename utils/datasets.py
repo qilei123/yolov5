@@ -1284,11 +1284,11 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
             # Letterbox
             shape = self.batch_shapes[self.batch[index]] if self.rect else self.img_size  # final letterboxed shape
             #print(self.batch_shapes)
-            print(shape)
+            #print(shape)
             #print(self.augment)
             img, ratio, pad = letterbox(img, shape, auto=False, scaleup=self.augment)
-            print(pad)
-            print(img.shape)
+            #print(pad)
+            #print(img.shape)
             shapes = (h0, w0), ((h / h0, w / w0), pad)  # for COCO mAP rescaling
 
             labels = self.labels[index].copy()
@@ -1305,7 +1305,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
                                                  scale=hyp['scale'],
                                                  shear=hyp['shear'],
                                                  perspective=hyp['perspective'])
-        show_segs(img,segments4)
+        #show_segs(img,segments4)
         nl = len(labels)  # number of labels
         if nl:
             labels[:, 1:5] = xyxy2xywhn(labels[:, 1:5], w=img.shape[1], h=img.shape[0], clip=True, eps=1E-3)
@@ -1343,6 +1343,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
         #labels_out = torch.zeros((nl, 1))
         obbs_out = torch.zeros((nl,7))
         
+        show_segs(img,np.array([xy2xyn(x, w=img.shape[1], h=img.shape[0],clip=True, eps=1E-3) for x in segments4]))
         if nl:
             obbs = poly2obb(segments4)
             label_boxes_out[:, 1:] = torch.from_numpy(labels)
