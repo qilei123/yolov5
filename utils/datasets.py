@@ -1339,7 +1339,8 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
         #labels_out = torch.zeros((nl, 1))
         obbs_out = torch.zeros((nl,7))
 
-        print(segments4)
+        from util_plot import *
+        show_segs(img,segments4)
         exit(0)
         if nl:
             obbs = poly2obb(segments4)
