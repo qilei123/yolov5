@@ -39,7 +39,7 @@ class DetectOBB(nn.Module):
         self.nc = nc  # number of classes
         self.no = nc + 6  # number of outputs per anchor
         self.nl = len(anchors)  # number of detection layers
-        print(anchors)
+        #print(anchors)
         self.na = len(anchors[0]) // 2  # number of anchors
         self.grid = [torch.zeros(1)] * self.nl  # init grid
         self.anchor_grid = [torch.zeros(1)] * self.nl  # init anchor grid
