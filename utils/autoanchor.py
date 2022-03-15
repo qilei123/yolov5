@@ -91,7 +91,7 @@ def check_anchors_obb(dataset, model, thr=4.0, imgsz=640):
         LOGGER.info(emojis(f'{s}Anchors are a poor fit to dataset ⚠️, attempting to improve...'))
         na = m.anchors.numel() // 2  # number of anchors
         try:
-            anchors = kmean_anchors(dataset, n=na, img_size=imgsz, thr=thr, gen=1000, verbose=False)
+            anchors = kmean_anchors_obb(dataset, n=na, img_size=imgsz, thr=thr, gen=1000, verbose=False)
         except Exception as e:
             LOGGER.info(f'{PREFIX}ERROR: {e}')
         new_bpr = metric(anchors)[0]
