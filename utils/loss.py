@@ -203,7 +203,7 @@ class ComputeLoss:
                 print('-------------')
                 print(anchors)
                 print(gain)
-                #print(t)
+                print(t)
                 o_t_l = t.shape[0]
                 print(t.shape)
                 t = t[j]  # filter
