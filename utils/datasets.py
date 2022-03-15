@@ -618,7 +618,9 @@ class LoadImagesAndLabels(Dataset):
         index = self.indices[index]  # linear, shuffled, or image_weights
 
         hyp = self.hyp
+        
         mosaic = self.mosaic and random.random() < hyp['mosaic']
+        mosaic = False
         if mosaic:
             # Load mosaic
             if hyp['mosaic_n']:
