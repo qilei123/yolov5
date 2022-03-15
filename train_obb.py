@@ -44,7 +44,7 @@ ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
 import val_obb  # for end-of-epoch mAP
 from models.experimental import attempt_load
 from models.yolo_obb import Model
-from utils.autoanchor import check_anchors
+from utils.autoanchor import check_anchors,check_anchors_obb
 from utils.autobatch import check_train_batch_size
 from utils.callbacks import Callbacks
 from utils.datasets import create_dataloader, create_dataloader_obb
@@ -250,7 +250,7 @@ def train(hyp,  # path/to/hyp.yaml or hyp dictionary
 
             # Anchors
             if not opt.noautoanchor:
-                check_anchors(dataset, model=model, thr=hyp['anchor_t'], imgsz=imgsz)
+                check_anchors_obb(dataset, model=model, thr=hyp['anchor_t'], imgsz=imgsz)
             model.half().float()  # pre-reduce anchor precision
 
         callbacks.run('on_pretrain_routine_end')
