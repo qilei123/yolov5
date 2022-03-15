@@ -367,6 +367,7 @@ class ComputeLossOBB:
                 #print(gain)
                 #print(t)
                 o_t_l = t.shape[0]
+                print(j)
                 #print(t.shape)
                 t = t[j]  # filter
                 f_t_l = t.shape[0]
