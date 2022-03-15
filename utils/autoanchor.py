@@ -66,6 +66,43 @@ def check_anchors(dataset, model, thr=4.0, imgsz=640):
         else:
             LOGGER.info(f'{PREFIX}Original anchors better than new anchors. Proceeding with original anchors.')
 
+def check_anchors_obb(dataset, model, thr=4.0, imgsz=640):
+    # Check anchor fit to data, recompute if necessary
+    m = model.module.model[-1] if hasattr(model, 'module') else model.model[-1]  # Detect()
+    shapes = imgsz * dataset.shapes / dataset.shapes.max(1, keepdims=True)
+    scale = np.random.uniform(0.9, 1.1, size=(shapes.shape[0], 1))  # augment scale
+
+    wh = torch.tensor(np.concatenate([l[:, 3:5] * s for s, l in zip(shapes * scale, dataset.obbs)])).float()  # wh
+
+
+    def metric(k):  # compute metric
+        r = wh[:, None] / k[None]
+        x = torch.min(r, 1 / r).min(2)[0]  # ratio metric
+        best = x.max(1)[0]  # best_x
+        aat = (x > 1 / thr).float().sum(1).mean()  # anchors above threshold
+        bpr = (best > 1 / thr).float().mean()  # best possible recall
+        return bpr, aat
+
+    anchors = m.anchors.clone() * m.stride.to(m.anchors.device).view(-1, 1, 1)  # current anchors
+    bpr, aat = metric(anchors.cpu().view(-1, 2))
+    s = f'\n{PREFIX}{aat:.2f} anchors/target, {bpr:.3f} Best Possible Recall (BPR). '
+    if bpr > 0.98:  # threshold to recompute
+        LOGGER.info(emojis(f'{s}Current anchors are a good fit to dataset ✅'))
+    else:
+        LOGGER.info(emojis(f'{s}Anchors are a poor fit to dataset ⚠️, attempting to improve...'))
+        na = m.anchors.numel() // 2  # number of anchors
+        try:
+            anchors = kmean_anchors(dataset, n=na, img_size=imgsz, thr=thr, gen=1000, verbose=False)
+        except Exception as e:
+            LOGGER.info(f'{PREFIX}ERROR: {e}')
+        new_bpr = metric(anchors)[0]
+        if new_bpr > bpr:  # replace anchors
+            anchors = torch.tensor(anchors, device=m.anchors.device).type_as(m.anchors)
+            m.anchors[:] = anchors.clone().view_as(m.anchors) / m.stride.to(m.anchors.device).view(-1, 1, 1)  # loss
+            check_anchor_order(m)
+            LOGGER.info(f'{PREFIX}New anchors saved to model. Update model *.yaml to use these anchors in the future.')
+        else:
+            LOGGER.info(f'{PREFIX}Original anchors better than new anchors. Proceeding with original anchors.')
 
 def kmean_anchors(dataset='./data/coco128.yaml', n=9, img_size=640, thr=4.0, gen=1000, verbose=True):
     """ Creates kmeans-evolved anchors from training dataset
