@@ -363,17 +363,17 @@ class ComputeLossOBB:
                 r = t[:, :, 4:6] / anchors[:, None]  # wh ratio
                 j = torch.max(r, 1 / r).max(2)[0] < self.hyp['anchor_t']  # compare
                 # j = wh_iou(anchors, t[:, 4:6]) > model.hyp['iou_t']  # iou(3,n)=wh_iou(anchors(3,2), gwh(n,2))
-                print('-------------')
-                print(gain)
-                print(t)
+                #print('-------------')
+                #print(gain)
+                #print(t)
                 o_t_l = t.shape[0]
-                print(t.shape)
+                #print(t.shape)
                 t = t[j]  # filter
                 f_t_l = t.shape[0]
-                print(t.shape)
-                print(o_t_l)
-                print(f_t_l)
-                print(f_t_l/o_t_l)
+                #print(t.shape)
+                #print(o_t_l)
+                #print(f_t_l)
+                #print(f_t_l/o_t_l)
                 # Offsets
                 gxy = t[:, 2:4]  # grid xy
                 gxi = gain[[2, 3]] - gxy  # inverse
