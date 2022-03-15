@@ -523,7 +523,7 @@ class LoadImagesAndLabels(Dataset):
                     self.segments[i][:, 0] = 0
 
         # Rectangular Training
-        self.rect = True
+        
         if self.rect:
             # Sort by aspect ratio
             s = self.shapes  # wh
@@ -1207,7 +1207,7 @@ class LoadImagesAndLabels4COCO(LoadImagesAndLabels):
                     self.segments[i][:, 0] = 0
             assert len(label)==len(segment),"they should be equal"
 
-
+        self.rect = True
         # Rectangular Training
         if self.rect:
             # Sort by aspect ratio
