@@ -73,7 +73,7 @@ def check_anchors_obb(dataset, model, thr=4.0, imgsz=640):
     scale = np.random.uniform(0.9, 1.1, size=(shapes.shape[0], 1))  # augment scale
 
     wh = torch.tensor(np.concatenate([l[:, 3:5] * s for s, l in zip(shapes * scale, dataset.obbs)])).float()  # wh
-
+    print(wh)
     def metric(k):  # compute metric
         r = wh[:, None] / k[None]
         x = torch.min(r, 1 / r).min(2)[0]  # ratio metric
