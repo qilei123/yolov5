@@ -201,15 +201,15 @@ class ComputeLoss:
                 j = torch.max(r, 1 / r).max(2)[0] < self.hyp['anchor_t']  # compare
                 # j = wh_iou(anchors, t[:, 4:6]) > model.hyp['iou_t']  # iou(3,n)=wh_iou(anchors(3,2), gwh(n,2))
                 print('-------------')
-                print(t)
+                #print(t)
                 o_t_l = t.shape[0]
                 print(t.shape)
                 t = t[j]  # filter
                 f_t_l = t.shape[0]
                 print(t.shape)
-                print(o_t_l)
-                print(f_t_l)
-                print(f_t_l/o_t_l)
+                #print(o_t_l)
+                #print(f_t_l)
+                #print(f_t_l/o_t_l)
 
                 # Offsets
                 gxy = t[:, 2:4]  # grid xy
@@ -238,7 +238,7 @@ class ComputeLoss:
             anch.append(anchors[a])  # anchors
             tcls.append(c)  # class
 
-            
+        exit(0)
         return tcls, tbox , indices, anch 
         #tcls is the categories, 
         #tbox is gtbox与三个负责预测的网格的xy坐标偏移量，gtbox的宽高, 
@@ -363,15 +363,15 @@ class ComputeLossOBB:
                 r = t[:, :, 4:6] / anchors[:, None]  # wh ratio
                 j = torch.max(r, 1 / r).max(2)[0] < self.hyp['anchor_t']  # compare
                 # j = wh_iou(anchors, t[:, 4:6]) > model.hyp['iou_t']  # iou(3,n)=wh_iou(anchors(3,2), gwh(n,2))
-                #print('-------------')
-                #print(gain)
+                print('-------------')
+                print(gain)
                 #print(t)
-                o_t_l = t.shape[0]
+                #o_t_l = t.shape[0]
                 #print(j)
-                #print(t.shape)
+                print(t.shape)
                 t = t[j]  # filter
-                f_t_l = t.shape[0]
-                #print(t.shape)
+                #f_t_l = t.shape[0]
+                print(t.shape)
                 #print(o_t_l)
                 #print(f_t_l)
                 #print(f_t_l/o_t_l)
@@ -405,7 +405,7 @@ class ComputeLossOBB:
             tbox.append(torch.cat((gxy - gij, gwh,gtheta), 1))  # box
             anch.append(anchors[a])  # anchors
             tcls.append(c)  # class
-
+        exit(0)
         return tcls, tbox , indices, anch 
         #tcls is the categories, 
         #tbox is gtbox与三个负责预测的网格的xy坐标偏移量，gtbox的宽高, 
