@@ -1139,6 +1139,7 @@ class LoadImagesAndLabels4COCO(LoadImagesAndLabels):
         self.labels = []
         self.shapes = []
         self.segments = []
+        self.obbs = []
 
         for ImgId in coco.getImgIds():
 
@@ -1177,6 +1178,7 @@ class LoadImagesAndLabels4COCO(LoadImagesAndLabels):
                 
                 self.labels.append(np.array(boxes, dtype=np.float64))
                 self.segments.append(np.array(segs, dtype=np.float64))
+                self.obbs.append(np.array(poly2obb(segs), dtype=np.float64))
 
         # Read cache
         #[cache.pop(k) for k in ('hash', 'version', 'msgs')]  # remove items
