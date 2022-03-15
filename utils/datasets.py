@@ -704,7 +704,7 @@ class LoadImagesAndLabels(Dataset):
                 im = np.load(npy)
             else:  # read image
                 f = self.img_files[i]
-                print(f)
+                #print(f)
                 im = cv2.imread(f)  # BGR
                 assert im is not None, f'Image Not Found {f}'
             h0, w0 = im.shape[:2]  # orig hw
@@ -1264,7 +1264,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
     def __getitem__(self, index):
         index = 1
         index = self.indices[index]  # linear, shuffled, or image_weights
-        print(index)
+        #print(index)
         hyp = self.hyp
         mosaic = self.mosaic and random.random() < hyp['mosaic']
         #print(mosaic)
@@ -1365,7 +1365,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
         img = np.ascontiguousarray(img)
         #print('input shape')
         #print(img.shape)
-        print(label_boxes_out.shape)
+        #print(label_boxes_out.shape)
         return torch.from_numpy(img), label_boxes_out, self.img_files[index], shapes, obbs_out
 
     def load_mosaic(self, index):
