@@ -10,7 +10,7 @@ python train.py --img 1280 --batch 1 --epochs 64 --data trans_drone_cat3.yaml --
 # python train_obb.py --exist-ok \
 #                     --device 0 \
 #                     --img 1280 \
-#                     --batch 32 \
+#                     --batch 1 \
 #                     --epochs 64 \
 #                     --hyp data/hyps/hyp.scratch_td.yaml \
 #                     --cfg models/yolov5s_obb.yaml \
