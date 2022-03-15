@@ -337,7 +337,7 @@ class ComputeLossOBB:
         lobj *= self.hyp['obj']
         lcls *= self.hyp['cls']
         bs = tobj.shape[0]  # batch size
-
+        exit(0)
         return (lbox + lobj + lcls) * bs, torch.cat((lbox, lobj, lcls)).detach()
 
     def build_targets(self, p, targets):# this function generates positive anchor targets' positions on the feature maps with different size
