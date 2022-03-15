@@ -1435,8 +1435,8 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
         for i, lb in enumerate(label):
             lb[:, 0] = i  # add target image index for build_targets()
             obbs_out[i][:,0] = i
-        for im in img:
-            print(im.shape)
+        #for im in img:
+        #    print(im.shape)
         return torch.stack(img, 0), torch.cat(label, 0), path, shapes, torch.cat(obbs_out,0)
 
 if __name__ == "__main__":
