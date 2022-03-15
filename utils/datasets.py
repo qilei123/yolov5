@@ -614,9 +614,9 @@ class LoadImagesAndLabels(Dataset):
     #     return self
 
     def __getitem__(self, index):
-        index = 1
+        index = 1 
         index = self.indices[index]  # linear, shuffled, or image_weights
-
+        print(index)
         hyp = self.hyp
         
         mosaic = self.mosaic and random.random() < hyp['mosaic']
@@ -1261,7 +1261,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
     def __getitem__(self, index):
         index = 1
         index = self.indices[index]  # linear, shuffled, or image_weights
-
+        print(index)
         hyp = self.hyp
         mosaic = self.mosaic and random.random() < hyp['mosaic']
         #print(mosaic)
