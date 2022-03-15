@@ -691,7 +691,7 @@ class LoadImagesAndLabels(Dataset):
         # Convert
         img = img.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
         img = np.ascontiguousarray(img)
-
+        print(label_outs.shape)
         return torch.from_numpy(img), labels_out, self.img_files[index], shapes
 
     def load_image(self, i):
@@ -1362,6 +1362,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
         img = np.ascontiguousarray(img)
         #print('input shape')
         #print(img.shape)
+        print(label_boxes_out.shape)
         return torch.from_numpy(img), label_boxes_out, self.img_files[index], shapes, obbs_out
 
     def load_mosaic(self, index):
