@@ -523,6 +523,7 @@ class LoadImagesAndLabels(Dataset):
                     self.segments[i][:, 0] = 0
 
         # Rectangular Training
+        self.rect = True
         if self.rect:
             # Sort by aspect ratio
             s = self.shapes  # wh
