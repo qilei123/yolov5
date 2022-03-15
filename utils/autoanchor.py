@@ -72,7 +72,7 @@ def check_anchors_obb(dataset, model, thr=4.0, imgsz=640):
     shapes = imgsz * dataset.shapes / dataset.shapes.max(1, keepdims=True)
     scale = np.random.uniform(0.9, 1.1, size=(shapes.shape[0], 1))  # augment scale
 
-    wh = torch.tensor(np.concatenate([l[:, 3:5] * s for s, l in zip(shapes * scale, dataset.obbs)])).float()  # wh
+    wh = torch.tensor(np.concatenate([l[:, 2:4] * s for s, l in zip(shapes * scale, dataset.obbs)])).float()  # wh
     print(wh)
     def metric(k):  # compute metric
         r = wh[:, None] / k[None]
@@ -265,7 +265,7 @@ def kmean_anchors_obb(dataset='./data/coco128.yaml', n=9, img_size=640, thr=4.0,
 
     # Get label wh
     shapes = img_size * dataset.shapes / dataset.shapes.max(1, keepdims=True)
-    wh0 = np.concatenate([l[:, 3:5] * s for s, l in zip(shapes, dataset.obbs)])  # wh
+    wh0 = np.concatenate([l[:, 2:4] * s for s, l in zip(shapes, dataset.obbs)])  # wh
 
     # Filter
     i = (wh0 < 3.0).any(1).sum()
