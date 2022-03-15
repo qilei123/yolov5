@@ -300,6 +300,10 @@ class ComputeLossOBB:
 
                 #with torch.no_grad():
                 #    iou = bt.bbox_overlaps(pbox.cpu(), tbox[i].cpu())
+                print('pbox')
+                print(pbox)
+                print('tbox[i]')
+                print(tbox[i])
                 iou = obb_overlaps(pbox, tbox[i],is_aligned=True)
                 iou = iou.squeeze()
 
