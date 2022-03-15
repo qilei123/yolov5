@@ -614,6 +614,7 @@ class LoadImagesAndLabels(Dataset):
     #     return self
 
     def __getitem__(self, index):
+        index = 1
         index = self.indices[index]  # linear, shuffled, or image_weights
 
         hyp = self.hyp
@@ -1256,6 +1257,7 @@ class LoadImagesAndLabels4COCO(LoadImagesAndLabels):
 class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
 
     def __getitem__(self, index):
+        index = 1
         index = self.indices[index]  # linear, shuffled, or image_weights
 
         hyp = self.hyp
