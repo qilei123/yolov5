@@ -306,7 +306,8 @@ class ComputeLossOBB:
                 print(tbox[i])
                 iou = obb_overlaps(pbox, tbox[i],is_aligned=True)
                 iou = iou.squeeze()
-
+                print('iou')
+                print(iou)
                 lbox += (1.0 - iou).mean()  # iou loss
 
                 # Objectness
