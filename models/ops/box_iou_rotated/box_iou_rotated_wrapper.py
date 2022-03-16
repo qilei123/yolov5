@@ -57,6 +57,10 @@ def aligned_obb_overlaps(bboxes1, bboxes2, mode='iou'):
     areas1 = bboxes1[:, 2] * bboxes1[:, 3]
     areas2 = bboxes2[:, 2] * bboxes2[:, 3]
     bboxes1, bboxes2 = obb2poly(bboxes1), obb2poly(bboxes2)
+    print('pbox_polygon')
+    print(bboxes1)
+    print('tbox_polygon')
+    print(bboxes2)
 
     num_objs = bboxes1.size(0)
     bboxes1_pts = bboxes1.view(num_objs, -1, 2)
