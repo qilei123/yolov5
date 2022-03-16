@@ -300,14 +300,14 @@ class ComputeLossOBB:
 
                 #with torch.no_grad():
                 #    iou = bt.bbox_overlaps(pbox.cpu(), tbox[i].cpu())
-                print('pbox')
-                print(pbox)
-                print('tbox[i]')
-                print(tbox[i])
+                #print('pbox')
+                #print(pbox)
+                #print('tbox[i]')
+                #print(tbox[i])
                 iou = obb_overlaps(pbox, tbox[i],is_aligned=True)
                 iou = iou.squeeze()
-                print('iou')
-                print(iou)
+                #print('iou')
+                #print(iou)
                 lbox += (1.0 - iou).mean()  # iou loss
 
                 # Objectness
@@ -338,7 +338,7 @@ class ComputeLossOBB:
         lobj *= self.hyp['obj']
         lcls *= self.hyp['cls']
         bs = tobj.shape[0]  # batch size
-        exit(0)
+        #exit(0)
         return (lbox + lobj + lcls) * bs, torch.cat((lbox, lobj, lcls)).detach()
 
     def build_targets(self, p, targets):# this function generates positive anchor targets' positions on the feature maps with different size
