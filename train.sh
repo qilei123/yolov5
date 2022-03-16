@@ -11,7 +11,7 @@ python train_obb.py --exist-ok \
                     --device 0 \
                     --img 1280 \
                     --batch 32 \
-                    --epochs 64 \
+                    --epochs 128 \
                     --hyp data/hyps/hyp.scratch_td.yaml \
                     --cfg models/yolov5s_obb.yaml \
                     --data trans_drone_cat3.yaml \
