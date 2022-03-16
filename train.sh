@@ -1,5 +1,5 @@
 git pull
-export CUDA_VISIBLE_DEVICES=0
+export CUDA_VISIBLE_DEVICES=0,1
 root_dir1=/data/qilei
 root_dir2=/data3/qilei_chen
 #python train.py --img 1920 --batch 8 --epochs 64 --data trans_drone_cat3.yaml --weights yolov5s.pt --project /data3/qilei_chen/work_model_dirs/yolov5/trans_drone_cat3/yolov5s --name exp_1920_mosaic4
@@ -8,9 +8,9 @@ root_dir2=/data3/qilei_chen
 #python train.py --img 1920 --batch 8 --epochs 64 --data trans_drone_cat3.yaml --weights yolov5s.pt --project /data3/qilei_chen/work_model_dirs/yolov5/trans_drone_cat3/yolov5s --name exp_1920_mosaic4
 
 python train_obb.py --exist-ok \
-                    --device 0 \
+                    --device 0,1 \
                     --img 1280 \
-                    --batch 1 \
+                    --batch 32 \
                     --epochs 64 \
                     --hyp data/hyps/hyp.scratch_td.yaml \
                     --cfg models/yolov5s_obb.yaml \
