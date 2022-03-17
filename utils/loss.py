@@ -495,4 +495,4 @@ class ComputeLossOBB:
             tcls.append(c)  # class
 
         #exit(0)
-        return tcls, tbox , indices, anch 
+        return tcls, tbox , indices, anch

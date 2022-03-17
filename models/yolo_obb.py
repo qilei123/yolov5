@@ -114,6 +114,7 @@ class Model(nn.Module):
         self.names = [str(i) for i in range(self.yaml['nc'])]  # default names
         self.inplace = self.yaml.get('inplace', True)
 
+
         # Build strides, anchors
         m = self.model[-1]  # Detect()
         print(m.hbb_anchors)
