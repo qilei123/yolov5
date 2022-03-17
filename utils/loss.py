@@ -271,10 +271,10 @@ class ComputeLossOBB:
         self.balance = {3: [4.0, 1.0, 0.4]}.get(det.nl, [4.0, 1.0, 0.25, 0.06, 0.02])  # P3-P7
         self.ssi = list(det.stride).index(16) if autobalance else 0  # stride 16 index
         self.BCEcls, self.BCEobj, self.gr, self.hyp, self.autobalance = BCEcls, BCEobj, 1.0, h, autobalance
-        for k in 'na', 'nc', 'nl', 'anchors':
+        for k in 'na', 'nc', 'nl', 'anchors','hbb_anchors':
             setattr(self, k, getattr(det, k))
 
-    def __call__(self, p, targets):  # predictions, targets, model
+    def __call__(self, p, targets,hbb_targets):  # predictions, targets, model
         device = targets.device
         lcls, lbox, lobj = torch.zeros(1, device=device), torch.zeros(1, device=device), torch.zeros(1, device=device)
         tcls, tbox, indices, anchors = self.build_targets(p, targets)  # targets
@@ -339,7 +339,7 @@ class ComputeLossOBB:
         lobj *= self.hyp['obj']
         lcls *= self.hyp['cls']
         bs = tobj.shape[0]  # batch size
-        #exit(0)
+        exit(0)
         return (lbox + lobj + lcls) * bs, torch.cat((lbox, lobj, lcls)).detach()
 
     def build_targets(self, p, targets):# this function generates positive anchor targets' positions on the feature maps with different size
@@ -422,3 +422,77 @@ class ComputeLossOBB:
         #tbox is gtbox与三个负责预测的网格的xy坐标偏移量，gtbox的宽高, 
         #indices (b表示当前gtbox属于该batch内第几张图片，a表示gtbox与anchors的对应关系，负责预测的网格纵坐标，负责预测的网格横坐标)
         #anch (最匹配的anchors)
+
+    def build_targets_with_hbb(self, p, targets,hbb_targets):# this function generates positive anchor targets' positions on the feature maps with different size
+        # Build targets for compute_loss(), input targets(image,class,x,y,w,h)
+        na, nt = self.na, targets.shape[0]  # number of anchors, targets
+        tcls, tbox, indices, anch = [], [], [], []
+        gain = torch.ones(7, device=targets.device)  # normalized to gridspace gain
+
+        ai = torch.arange(na, device=targets.device).float().view(na, 1).repeat(1, nt)  # same as .repeat_interleave(nt)
+
+        targets = torch.cat((targets.repeat(na, 1, 1), ai[:, :, None]), 2)  # append anchor indices
+
+        hbb_targets = torch.cat((hbb_targets.repeat(na, 1, 1), ai[:, :, None]), 2)  # append anchor indices
+
+        g = 0.5  # bias
+        off = torch.tensor([[0, 0],
+                            [1, 0], [0, 1], [-1, 0], [0, -1],  # j,k,l,m
+                            # [1, 1], [1, -1], [-1, 1], [-1, -1],  # jk,jm,lk,lm
+                            ], device=targets.device).float() * g  # offsets
+
+        for i in range(self.nl):
+            anchors = self.hbb_anchors[i]
+
+            gain[2:6] = torch.tensor(p[i].shape)[[3, 2, 3, 2]]  # xyxy gain
+
+            # Match targets to anchors
+            t = targets * gain
+            if nt:
+                # Matches
+                r = t[:, :, 4:6] / anchors[:, None]  # wh ratio
+                j = torch.max(r, 1 / r).max(2)[0] < self.hyp['anchor_t']  # compare
+                # j = wh_iou(anchors, t[:, 4:6]) > model.hyp['iou_t']  # iou(3,n)=wh_iou(anchors(3,2), gwh(n,2))
+                #print('-------------')
+                #print(self.hyp['anchor_t'])
+                #print(anchors)
+                #print(gain)
+                #print(t)
+                #o_t_l = t.shape[0]
+                #print(t.shape)
+                t = t[j]  # filter
+                #f_t_l = t.shape[0]
+                #print(t.shape)
+                #print(o_t_l)
+                #print(f_t_l)
+                #print(f_t_l/o_t_l)
+
+                # Offsets
+                gxy = t[:, 2:4]  # grid xy
+                gxi = gain[[2, 3]] - gxy  # inverse
+                j, k = ((gxy % 1 < g) & (gxy > 1)).T
+                l, m = ((gxi % 1 < g) & (gxi > 1)).T
+                j = torch.stack((torch.ones_like(j), j, k, l, m))
+                t = t.repeat((5, 1, 1))[j]
+                offsets = (torch.zeros_like(gxy)[None] + off[:, None])[j]
+            else:
+                t = targets[0]
+                offsets = 0
+
+            # Define
+            b, c = t[:, :2].long().T  # image, class
+            
+            gxy = t[:, 2:4]  # grid xy
+            gwh = t[:, 4:6]  # grid wh
+            gij = (gxy - offsets).long()
+            gi, gj = gij.T  # grid xy indices
+
+            # Append
+            a = t[:, 6].long()  # anchor indices
+            indices.append((b, a, gj.clamp_(0, gain[3] - 1), gi.clamp_(0, gain[2] - 1)))  # image, anchor, grid indices
+            tbox.append(torch.cat((gxy - gij, gwh), 1))  # box
+            anch.append(anchors[a])  # anchors
+            tcls.append(c)  # class
+
+        #exit(0)
+        return tcls, tbox , indices, anch 
