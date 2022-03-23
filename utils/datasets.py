@@ -35,10 +35,38 @@ from pycocotools.coco import COCO
 
 from utils.augmentations import Albumentations, augment_hsv, copy_paste, letterbox, mixup, mixup_poly, random_perspective, random_perspective_segs
 from utils.general import (DATASETS_DIR, LOGGER, NUM_THREADS, check_dataset, check_requirements, check_yaml, clean_str, obb2poly,
-                           segments2boxes, xyn2xy, xywh2xyxy, xywhn2xyxy, xyxy2xywhn, poly2obb,xy2xyn)
+                           segments2boxes, xyn2xy, xywh2xyxy, xywhn2xyxy, xyxy2xywhn, poly2obb,poly2obb_without_regular,xy2xyn)
 from utils.torch_utils import torch_distributed_zero_first
 
 from util_plot import *
+
+from shapely.geometry import Point, Polygon, MultiPoint
+
+
+def seg2points(seg):
+    points = []
+
+    for i in range(len(seg)):
+        if i % 2 == 1:
+            points.append((seg[i - 1], seg[i]))
+
+    return points
+
+
+def seg2minrect(seg):
+    # seg = ann['segmentation'][0]
+    # print(seg)
+    polygon_points = seg2points(seg)
+    polygon = Polygon(polygon_points)
+    # print(polygon)
+    min_rect = polygon.minimum_rotated_rectangle
+    # print(min_rect)
+    xs, ys = min_rect.exterior.coords.xy
+    xys = []
+    for i in range(4):
+        xys.append(round(xs[i], 2))
+        xys.append(round(ys[i], 2))
+    return xys
 
 # Parameters
 HELP_URL = 'https://github.com/ultralytics/yolov5/wiki/Train-Custom-Data'
@@ -143,7 +171,7 @@ def create_dataloader(path, imgsz, batch_size, stride, single_cls=False, hyp=Non
                   collate_fn=LoadImagesAndLabels.collate_fn4 if quad else LoadImagesAndLabels.collate_fn), dataset
 
 def create_dataloader_obb(path, imgsz, batch_size, stride, single_cls=False, hyp=None, augment=False, cache=False, pad=0.0,
-                      rect=False, rank=-1, workers=8, image_weights=False, quad=False, prefix='', shuffle=False):
+                      rect=False, rank=-1, workers=8, image_weights=False, quad=False, prefix='', shuffle=False,select_cats=None):
     if rect and shuffle:
         LOGGER.warning('WARNING: --rect is incompatible with DataLoader shuffle, setting shuffle=False')
         shuffle = False
@@ -158,7 +186,8 @@ def create_dataloader_obb(path, imgsz, batch_size, stride, single_cls=False, hyp
                                       stride=int(stride),
                                       pad=pad,
                                       image_weights=image_weights,
-                                      prefix=prefix)
+                                      prefix=prefix,
+                                      select_cats = select_cats)
         else:
             dataset = LoadImagesAndLabels(path, imgsz, batch_size,
                                       augment=augment,  # augmentation
@@ -1114,7 +1143,7 @@ class LoadImagesAndLabels4COCO(LoadImagesAndLabels):
     cache_version = 0.7  # dataset labels *.cache version
 
     def __init__(self, path, img_size=640, batch_size=16, augment=False, hyp=None, rect=False, image_weights=False,
-                 cache_images=False, single_cls=False, stride=32, pad=0.0, prefix=''):
+                 cache_images=False, single_cls=False, stride=32, pad=0.0, prefix='',select_cats = None):
         self.img_size = img_size
         self.augment = augment
         self.hyp = hyp
@@ -1141,6 +1170,10 @@ class LoadImagesAndLabels4COCO(LoadImagesAndLabels):
         self.segments = []
         self.obbs = []
 
+        if select_cats:
+            select_cats_id = coco.getCatIds(catNms=select_cats)
+        else:
+            select_cats_id = coco.getCatIds()
         for ImgId in coco.getImgIds():
 
             img = coco.loadImgs([ImgId])[0]
@@ -1153,22 +1186,23 @@ class LoadImagesAndLabels4COCO(LoadImagesAndLabels):
             boxes = []
             segs = []
             for ann in anns:
-                
-                box = [ann['category_id']-1,
-                        (ann['bbox'][0]+ann['bbox'][2]/2)/img_width,
-                        (ann['bbox'][1]+ann['bbox'][3]/2)/img_height,
-                        ann['bbox'][2]/img_width,
-                        ann['bbox'][3]/img_height]
-                boxes.append(box)
+                if ann['category_id'] in select_cats_id:
+                    box = [ann['category_id']-1,
+                            (ann['bbox'][0]+ann['bbox'][2]/2)/img_width,
+                            (ann['bbox'][1]+ann['bbox'][3]/2)/img_height,
+                            ann['bbox'][2]/img_width,
+                            ann['bbox'][3]/img_height]
+                    boxes.append(box)
 
-                seg = []
-                #seg.append(ann['category_id']-1)
-                for coord_index,coord in enumerate(ann['segmentation'][0]):
-                    if coord_index%2==1:
-                        seg.append([ann['segmentation'][0][coord_index-1]/img_width,coord/img_height])
-                    #else:
-                    #    seg.append(coord/img_height)
-                segs.append(seg)
+                    seg = []
+                    #seg.append(ann['category_id']-1)
+                    ann_segmentation_minrect = seg2minrect(ann['segmentation'][0])
+                    for coord_index,coord in enumerate(ann_segmentation_minrect):
+                        if coord_index%2==1:
+                            seg.append([ann_segmentation_minrect[coord_index-1]/img_width,coord/img_height])
+                        #else:
+                        #    seg.append(coord/img_height)
+                    segs.append(seg)
 
             if len(boxes)>0:
                 self.shapes.append((img_width,img_height))
@@ -1178,7 +1212,7 @@ class LoadImagesAndLabels4COCO(LoadImagesAndLabels):
                 
                 self.labels.append(np.array(boxes, dtype=np.float64))
                 self.segments.append(np.array(segs, dtype=np.float64))
-                self.obbs.append(np.array(poly2obb(segs), dtype=np.float64))
+                self.obbs.append(np.array(poly2obb_without_regular(segs), dtype=np.float64))
 
         # Read cache
         #[cache.pop(k) for k in ('hash', 'version', 'msgs')]  # remove items
@@ -1353,7 +1387,8 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
         
         #show_segs(img,np.array([xyn2xy(x, w=img.shape[1], h=img.shape[0]) for x in segments4]))
         if nl:
-            obbs = poly2obb(segments4)
+            #obbs = poly2obb(segments4)
+            obbs = poly2obb_without_regular(segments4)
             label_boxes_out[:, 1:] = torch.from_numpy(labels)
             #labels_out = torch.from_numpy(labels[:,0])
             #print(obbs_out.shape)

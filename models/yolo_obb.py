@@ -20,7 +20,7 @@ if str(ROOT) not in sys.path:
 from models.common import *
 from models.experimental import *
 from utils.autoanchor import check_anchor_order
-from utils.general import LOGGER, check_version, check_yaml, make_divisible, print_args
+from utils.general import LOGGER, check_version, check_yaml, make_divisible, print_args,regular_obb
 from utils.plots import feature_visualization
 from utils.torch_utils import fuse_conv_and_bn, initialize_weights, model_info, scale_img, select_device, time_sync
 
@@ -28,7 +28,6 @@ try:
     import thop  # for FLOPs computation
 except ImportError:
     thop = None
-
 
 class DetectOBB(nn.Module):
     stride = None  # strides computed during build
@@ -72,6 +71,7 @@ class DetectOBB(nn.Module):
                     theta = y[..., 4:5]* 3.1415926/2
                     
                     y = torch.cat((xy, wh, theta,y[..., 5:]), -1)
+                y[...,:5] = regular_obb(y[...,:5])
                 #print(y[...,4])
                 z.append(y.view(bs, -1, self.no))
                 #print('in head2:')
@@ -117,11 +117,12 @@ class Model(nn.Module):
 
         # Build strides, anchors
         m = self.model[-1]  # Detect()
-        print(m.hbb_anchors)
+        #print(m.hbb_anchors)
         if isinstance(m, DetectOBB):
             s = 256  # 2x min stride
             m.inplace = self.inplace
             m.stride = torch.tensor([s / x.shape[-2] for x in self.forward(torch.zeros(1, ch, s, s))])  # forward
+            #print(m.anchors)
             m.anchors /= m.stride.view(-1, 1, 1)
             check_anchor_order(m)
             self.stride = m.stride

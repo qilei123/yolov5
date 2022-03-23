@@ -1,5 +1,4 @@
 python detect.py \
-    --source '/data/qilei/DATASETS/trans_drone/images/DJI_0003 400 90 degree 29.jpg' \
-    --imgsz 1280 \
-    --weights /data/qilei/work_dir_models_results/yolov5/trans_drone_cat3/yolov5s_obb/exp_1280_mosaic4_debug/weights/last.pt \
-    --data data/trans_drone_cat3.yaml
+  --weights /data/qilei/work_model_dirs/yolov5/trans_drone_cat3/yolov5s/exp_1280_mosaic4/weights/best.pt \
+  --source /home/qilei/DATASETS/trans_drone/trans_drone_videos2/DJI_0063.MOV \
+  --exist-ok

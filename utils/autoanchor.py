@@ -26,9 +26,9 @@ def check_anchor_order(m):
         LOGGER.info(f'{PREFIX}Reversing anchor order')
         m.anchors[:] = m.anchors.flip(0)
 
-def check_obbanchor_order(m):
+def check_hbbanchor_order(m):
     # Check anchor order against stride order for YOLOv5 Detect() module m, and correct if necessary
-    a = m.obb_anchors.prod(-1).view(-1)  # anchor area
+    a = m.hbb_anchors.prod(-1).view(-1)  # anchor area
     da = a[-1] - a[0]  # delta a
     ds = m.stride[-1] - m.stride[0]  # delta s
     if da.sign() != ds.sign():  # same order
@@ -56,7 +56,7 @@ def check_anchors(dataset, model, thr=4.0, imgsz=640):
     anchors = m.anchors.clone() * m.stride.to(m.anchors.device).view(-1, 1, 1)  # current anchors
     bpr, aat = metric(anchors.cpu().view(-1, 2))
     s = f'\n{PREFIX}{aat:.2f} anchors/target, {bpr:.3f} Best Possible Recall (BPR). '
-    if bpr > 0.98:  # threshold to recompute
+    if bpr > 0.98 and False:  # threshold to recompute
         LOGGER.info(emojis(f'{s}Current anchors are a good fit to dataset ✅'))
     else:
         LOGGER.info(emojis(f'{s}Anchors are a poor fit to dataset ⚠️, attempting to improve...'))
@@ -66,10 +66,12 @@ def check_anchors(dataset, model, thr=4.0, imgsz=640):
         except Exception as e:
             LOGGER.info(f'{PREFIX}ERROR: {e}')
         new_bpr = metric(anchors)[0]
-        if new_bpr > bpr:  # replace anchors
+        if new_bpr > bpr or True:  # replace anchors
             anchors = torch.tensor(anchors, device=m.anchors.device).type_as(m.anchors)
             m.anchors[:] = anchors.clone().view_as(m.anchors) / m.stride.to(m.anchors.device).view(-1, 1, 1)  # loss
+            #print(m.anchors)
             check_anchor_order(m)
+            #print(m.anchors)
             LOGGER.info(f'{PREFIX}New anchors saved to model. Update model *.yaml to use these anchors in the future.')
         else:
             LOGGER.info(f'{PREFIX}Original anchors better than new anchors. Proceeding with original anchors.')
@@ -104,16 +106,20 @@ def check_anchors_obb(dataset, model, thr=4.0, imgsz=640):
         except Exception as e:
             LOGGER.info(f'{PREFIX}ERROR: {e}')
         new_bpr = metric(anchors)[0]
-        if new_bpr > bpr:  # replace anchors
+        if new_bpr > bpr or True:  # replace anchors
+
             anchors = torch.tensor(anchors, device=m.anchors.device).type_as(m.anchors)
             m.anchors[:] = anchors.clone().view_as(m.anchors) / m.stride.to(m.anchors.device).view(-1, 1, 1)  # loss
-            m.hbb_anchors[:] = hbb_anchors.clone().view_as(m.obb_anchors) / m.stride.to(m.obb_anchors.device).view(-1, 1, 1)  # loss
+
+            hbb_anchors = torch.tensor(hbb_anchors, device=m.hbb_anchors.device).type_as(m.hbb_anchors)
+            m.hbb_anchors[:] = hbb_anchors.clone().view_as(m.hbb_anchors) / m.stride.to(m.hbb_anchors.device).view(-1, 1, 1)  # loss
+
             check_anchor_order(m)
-            check_obbanchor_order(m)
+            check_hbbanchor_order(m)
+
             LOGGER.info(f'{PREFIX}New anchors saved to model. Update model *.yaml to use these anchors in the future.')
         else:
             LOGGER.info(f'{PREFIX}Original anchors better than new anchors. Proceeding with original anchors.')
-
 
 def kmean_anchors(dataset='./data/coco128.yaml', n=9, img_size=640, thr=4.0, gen=1000, verbose=True):
     """ Creates kmeans-evolved anchors from training dataset

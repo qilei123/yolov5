@@ -1086,6 +1086,29 @@ def poly2obb(polys):
     #print(obboxes)
     return obboxes
 
+
+def poly2obb_without_regular(polys):
+    polys_f32 = np.array(polys).astype(np.float32)
+    obboxes = []
+    for poly in polys_f32:
+        (x, y), (w, h), angle = cv2.minAreaRect(poly)
+        # print(angle)
+        # angle = -angle
+        # print(angle)
+        theta = angle / 180 * pi  # [0,pi/2]
+
+        obboxes.append([x, y, w, h, theta])
+
+    if not obboxes:
+        obboxes = np.zeros((0, 5))
+    else:
+        obboxes = np.array(obboxes)
+    # print(obboxes)
+    #obboxes = regular_obb(obboxes)
+    # print("poly2obb")
+    # print(obboxes)
+    return torch.from_numpy(obboxes)
+
 def obb2poly(obboxes):
     center, w, h, theta = torch.split(obboxes, [2, 1, 1, 1], dim=-1)
     Cos, Sin = torch.cos(theta), torch.sin(theta)

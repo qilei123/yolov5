@@ -227,7 +227,7 @@ def train(hyp,  # path/to/hyp.yaml or hyp dictionary
                                               hyp=hyp, augment=True, cache=None if opt.cache == 'val' else opt.cache,
                                               rect=opt.rect, rank=LOCAL_RANK, workers=workers,
                                               image_weights=opt.image_weights, quad=opt.quad,
-                                              prefix=colorstr('train: '), shuffle=True)
+                                              prefix=colorstr('train: '), shuffle=True, select_cats=names)
     
     mlc = int(np.concatenate(dataset.labels, 0)[:, 0].max())  # max label class
     nb = len(train_loader)  # number of batches
@@ -238,7 +238,7 @@ def train(hyp,  # path/to/hyp.yaml or hyp dictionary
         val_loader = create_dataloader_obb(val_path, imgsz, batch_size // WORLD_SIZE * 2, gs, single_cls,
                                        hyp=hyp, cache=None if noval else opt.cache,
                                        rect=True, rank=-1, workers=workers * 2, pad=0.0,
-                                       prefix=colorstr('val: '))[0]
+                                       prefix=colorstr('val: '),select_cats=names)[0]
 
         if not resume:
             labels = np.concatenate(dataset.labels, 0)
@@ -249,6 +249,7 @@ def train(hyp,  # path/to/hyp.yaml or hyp dictionary
                 plot_labels(labels, names, save_dir)
 
             # Anchors
+            print(opt.noautoanchor)
             if not opt.noautoanchor:
                 check_anchors_obb(dataset, model=model, thr=hyp['anchor_t'], imgsz=imgsz)
                 #check_anchors(dataset, model=model, thr=hyp['anchor_t'], imgsz=imgsz)

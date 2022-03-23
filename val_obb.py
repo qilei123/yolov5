@@ -205,7 +205,7 @@ def run(data,
 
         # Loss
         if compute_loss:
-            loss += compute_loss([x.float() for x in train_out], obb_targets)[1]  # box, obj, cls
+            loss += compute_loss([x.float() for x in train_out], obb_targets,targets)[1]  # box, obj, cls
 
         # NMS
         obb_targets[:, 2:6] *= torch.Tensor([width, height, width, height]).to(device)  # to pixels
