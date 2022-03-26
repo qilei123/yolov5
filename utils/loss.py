@@ -15,7 +15,6 @@ import BboxToolkit as bt
 from models.ops import obb_overlaps
 
 pi = 3.1415926
-
 def smooth_BCE(eps=0.1):  # https://github.com/ultralytics/yolov3/issues/238#issuecomment-598028441
     # return positive, negative label smoothing BCE targets
     return 1.0 - 0.5 * eps, 0.5 * eps
@@ -310,6 +309,7 @@ class ComputeLossOBB:
                 pwh = (ps[:, 2:4].sigmoid() * 2) ** 2 * anchors[i]
                 ptheta =ps[:, 4:5].sigmoid() * 3.1415926/2
                 pbox = torch.cat((pxy, pwh, ptheta), 1)  # predicted box
+                
                 pbox = regular_obb(pbox)
                 
                 #iou = bbox_iou(pbox.T, tbox[i], x1y1x2y2=False, CIoU=True)  # iou(prediction, target)
@@ -318,6 +318,7 @@ class ComputeLossOBB:
                 #    iou = bt.bbox_overlaps(pbox.cpu(), tbox[i].cpu())
 
                 tbox[i] = regular_obb(tbox[i])
+                
                 iou = obb_overlaps(pbox, tbox[i],is_aligned=True)
                 iou = iou.squeeze()
 

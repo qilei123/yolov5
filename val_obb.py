@@ -69,7 +69,6 @@ def save_one_json(predn, jdict, path, class_map):
                       'bbox': [round(x, 3) for x in b],
                       'score': round(p[4], 5)})
 
-
 def process_batch(detections, labels, iouv):
     """
     Return correct predictions matrix. Both sets of boxes are in (x1, y1, x2, y2) format.
@@ -245,24 +244,21 @@ def run(data,
             # Predictions
             if single_cls:
                 pred[:, 6] = 0
-            #print(pred)
+
             predn = pred.clone()
             
             scale_coords_obb(im[si].shape[1:], predn[:, :4], shape, shapes[si][1])  # native-space pred
-            #print('------after scale------')
-            #print(predn)
-            #exit(0)
+
             # Evaluate
-            #nl=0 #debug train only
+
             if nl:
                 #tbox = xywh2xyxy(labels[:, 1:5])
                 tbox = labels[:,1:6]
                 scale_coords_obb(im[si].shape[1:], tbox, shape, shapes[si][1])  # native-space labels
                 labelsn = torch.cat((labels[:, 0:1], tbox), 1)  # native-space labels
-                #print(labelsn)
-                #print('before process_batch')
+
                 correct = process_batch(predn, labelsn, iouv)
-                #exit(0)
+
                 if plots:
                     confusion_matrix.process_batch(predn, labelsn)
             else:

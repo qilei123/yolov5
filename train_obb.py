@@ -247,7 +247,6 @@ def train(hyp,  # path/to/hyp.yaml or hyp dictionary
             # model._initialize_biases(cf.to(device))
             if plots:
                 plot_labels(labels, names, save_dir)
-
             # Anchors
             if not opt.noautoanchor:
                 check_anchors_obb(dataset, model=model, thr=hyp['anchor_t'], imgsz=imgsz)
