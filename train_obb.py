@@ -249,7 +249,6 @@ def train(hyp,  # path/to/hyp.yaml or hyp dictionary
                 plot_labels(labels, names, save_dir)
 
             # Anchors
-            print(opt.noautoanchor)
             if not opt.noautoanchor:
                 check_anchors_obb(dataset, model=model, thr=hyp['anchor_t'], imgsz=imgsz)
                 #check_anchors(dataset, model=model, thr=hyp['anchor_t'], imgsz=imgsz)

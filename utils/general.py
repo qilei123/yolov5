@@ -1109,6 +1109,33 @@ def poly2obb_without_regular(polys):
     # print(obboxes)
     return torch.from_numpy(obboxes)
 
+def poly2obb_v2(polys):
+    if not len(polys):
+        return  torch.from_numpy(np.zeros((0, 5)))
+    polys4tensor = torch.from_numpy(polys)
+    polys4tensor = torch.flatten(polys4tensor,start_dim=1)
+
+    x1 = polys4tensor[...,0]
+    y1 = polys4tensor[...,1]
+    x2 = polys4tensor[...,2]
+    y2 = polys4tensor[...,3]
+    x3 = polys4tensor[...,4]
+    y3 = polys4tensor[...,5]
+    x4 = polys4tensor[...,6]
+    y4 = polys4tensor[...,7]
+    x = ((x1 + x3) / 2 + (x2 + x4) / 2) / 2
+    y = ((y1 + y3) / 2 + (y2 + y4) / 2) / 2
+    w = torch.sqrt(torch.pow((x1 - x2), 2) + torch.pow((y1 - y2), 2))
+    h = torch.sqrt(torch.pow((x2 - x3), 2) + torch.pow((y2 - y3), 2))
+
+    theta = ((y2 - y1) / (x2 - x1 + 1e-16) + (y3 - y4) / (x3 - x4 + 1e-16)) / 2
+    theta = torch.atan(theta)
+    theta = torch.stack([t if t != -(np.pi / 2) else t + np.pi for t in theta])
+    obboxes = torch.cat(
+        (x.unsqueeze(dim=-1), y.unsqueeze(dim=-1), w.unsqueeze(dim=-1), h.unsqueeze(dim=-1), theta.unsqueeze(dim=-1)),
+        dim=1)
+    return obboxes
+
 def obb2poly(obboxes):
     center, w, h, theta = torch.split(obboxes, [2, 1, 1, 1], dim=-1)
     Cos, Sin = torch.cos(theta), torch.sin(theta)

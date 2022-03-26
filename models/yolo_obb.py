@@ -32,18 +32,30 @@ except ImportError:
 class DetectOBB(nn.Module):
     stride = None  # strides computed during build
     onnx_dynamic = False  # ONNX export parameter
-
+    
     def __init__(self, nc=80, anchors=(), ch=(), inplace=True):  # detection layer
         super().__init__()
+        radian = np.pi / 180
+        self.angles = [-radian * 60, -radian * 30, 0, radian * 30, radian * 60, radian * 90]
+        self.nt = len(self.angles)
         self.nc = nc  # number of classes
         self.no = nc + 6  # number of outputs per anchor
         self.nl = len(anchors)  # number of detection layers
-        #print(anchors)
+
         self.na = len(anchors[0]) // 2  # number of anchors
+        #self.na = len(anchors[0]) // 2 * self.nt  # number of anchors
+
         self.grid = [torch.zeros(1)] * self.nl  # init grid
         self.anchor_grid = [torch.zeros(1)] * self.nl  # init anchor grid
+        
         self.register_buffer('anchors', torch.tensor(anchors).float().view(self.nl, -1, 2))  # shape(nl,na,2)
         self.register_buffer('hbb_anchors', torch.tensor(anchors).float().view(self.nl, -1, 2))  # shape(nl,na,2)
+        
+        anchors_angles =[]
+        for i in range(self.nl):
+            anchors_angles.append([(a_w , a_h , a) for a_w, a_h in self.anchors[i] for a in self.angles])
+        self.register_buffer('anchors_angles' , torch.tensor(anchors_angles).float().view(self.nl, -1, 3))
+
         self.m = nn.ModuleList(nn.Conv2d(x, self.no * self.na, 1) for x in ch)  # output conv
         self.inplace = inplace  # use in-place ops (e.g. slice assignment)
 
@@ -51,11 +63,10 @@ class DetectOBB(nn.Module):
         z = []  # inference output
         for i in range(self.nl):
             x[i] = self.m[i](x[i])  # conv
-            bs, _, ny, nx = x[i].shape  # x(bs,255,20,20) to x(bs,3,20,20,nc+6)
+            bs, _, ny, nx = x[i].shape  # x(bs,na*(nc+6),ny,nx) to x(bs,na,ny,nx,nc+6)
             x[i] = x[i].view(bs, self.na, self.no, ny, nx).permute(0, 1, 3, 4, 2).contiguous()
-            #print('in head1:')
-            #print(x[i].shape)
-            if not self.training:  # inference
+
+            if not self.training:  # inference or evaluation
                 if self.onnx_dynamic or self.grid[i].shape[2:4] != x[i].shape[2:4]:
                     self.grid[i], self.anchor_grid[i] = self._make_grid(nx, ny, i)
                 
@@ -74,9 +85,7 @@ class DetectOBB(nn.Module):
                 y[...,:5] = regular_obb(y[...,:5])
                 #print(y[...,4])
                 z.append(y.view(bs, -1, self.no))
-                #print('in head2:')
-                #print(y.shape)
-        #exit(0)
+
             
         return x if self.training else (torch.cat(z, 1), x)
 
@@ -124,6 +133,7 @@ class Model(nn.Module):
             m.stride = torch.tensor([s / x.shape[-2] for x in self.forward(torch.zeros(1, ch, s, s))])  # forward
             #print(m.anchors)
             m.anchors /= m.stride.view(-1, 1, 1)
+            m.anchors_angles[...,:2] /= m.stride.view(-1, 1, 1)
             check_anchor_order(m)
             self.stride = m.stride
             self._initialize_biases()  # only run once

@@ -91,7 +91,6 @@ def check_anchors_obb(dataset, model, thr=4.0, imgsz=640):
         aat = (x > 1 / thr).float().sum(1).mean()  # anchors above threshold
         bpr = (best > 1 / thr).float().mean()  # best possible recall
         return bpr, aat
-
     anchors = m.anchors.clone() * m.stride.to(m.anchors.device).view(-1, 1, 1)  # current anchors
     bpr, aat = metric(anchors.cpu().view(-1, 2))
     s = f'\n{PREFIX}{aat:.2f} anchors/target, {bpr:.3f} Best Possible Recall (BPR). '

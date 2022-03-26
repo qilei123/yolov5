@@ -35,7 +35,7 @@ from pycocotools.coco import COCO
 
 from utils.augmentations import Albumentations, augment_hsv, copy_paste, letterbox, mixup, mixup_poly, random_perspective, random_perspective_segs
 from utils.general import (DATASETS_DIR, LOGGER, NUM_THREADS, check_dataset, check_requirements, check_yaml, clean_str, obb2poly,
-                           segments2boxes, xyn2xy, xywh2xyxy, xywhn2xyxy, xyxy2xywhn, poly2obb,poly2obb_without_regular,xy2xyn)
+                           segments2boxes, xyn2xy, xywh2xyxy, xywhn2xyxy, xyxy2xywhn, poly2obb,poly2obb_without_regular,poly2obb_v2,xy2xyn)
 from utils.torch_utils import torch_distributed_zero_first
 
 from util_plot import *
@@ -1389,6 +1389,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
         if nl:
             #obbs = poly2obb(segments4)
             obbs = poly2obb_without_regular(segments4)
+            #obbs = poly2obb_v2(segments4)
             label_boxes_out[:, 1:] = torch.from_numpy(labels)
             #labels_out = torch.from_numpy(labels[:,0])
             #print(obbs_out.shape)
