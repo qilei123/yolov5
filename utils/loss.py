@@ -291,9 +291,10 @@ class ComputeLossOBB:
         # targets 每个target数据包含(所在batch的image索引数,类别，x,y,w,h,theta)
         device = targets.device
         lcls, lbox, lobj = torch.zeros(1, device=device), torch.zeros(1, device=device), torch.zeros(1, device=device)
-        tcls, tbox, indices, anchors = self.build_targets(p, targets)  # targets
+        #tcls, tbox, indices, anchors = self.build_targets(p, targets)  # targets
+        #tcls, tbox, indices, anchors = self.build_targets_with_ious(p, targets)  # targets
         #tcls, tbox, indices, anchors = self.build_targets_with_hbb(p, targets,hbb_targets)  # targets
-        #tcls, tbox, indices, anchors = self.build_targets_with_angles(p, targets)
+        tcls, tbox, indices, anchors = self.build_targets_with_angles(p, targets)
 
         # Losses
         for i, pi in enumerate(p):  # layer index, layer predictions
@@ -306,8 +307,11 @@ class ComputeLossOBB:
 
                 # Regression
                 pxy = ps[:, :2].sigmoid() * 2 - 0.5
-                pwh = (ps[:, 2:4].sigmoid() * 2) ** 2 * anchors[i]
-                ptheta =ps[:, 4:5].sigmoid() * 3.1415926/2
+
+                #pwh = (ps[:, 2:4].sigmoid() * 2) ** 2 * anchors[i]
+                pwh = ps[:,2:4].exp()*anchors[i][...,:2]
+
+                ptheta =(ps[:, 4:5].sigmoid()-0.5) * 3.1415926/2
                 pbox = torch.cat((pxy, pwh, ptheta), 1)  # predicted box
                 
                 pbox = regular_obb(pbox)
@@ -479,6 +483,85 @@ class ComputeLossOBB:
                 # Matches
                 r = t[:, :, 4:6] / anchors[:, None]  # wh ratio
                 j = torch.max(r, 1 / r).max(2)[0] < self.hyp['anchor_t']  # compare
+
+                t = t[j]  # filter
+
+                gxy = t[:, 2:4]  # grid xy
+                gxi = gain[[2, 3]] - gxy  # inverse
+                j, k = ((gxy % 1 < g) & (gxy > 1)).T
+                l, m = ((gxi % 1 < g) & (gxi > 1)).T
+                j = torch.stack((torch.ones_like(j), j, k, l, m))
+                t = t.repeat((5, 1, 1))[j]
+                offsets = (torch.zeros_like(gxy)[None] + off[:, None])[j]
+
+            else:
+                t = targets[0]
+                offsets = 0
+
+            # Define
+            b, c = t[:, :2].long().T  # image, class
+
+            gxy = t[:, 2:4]  # grid xy
+            gwh = t[:, 4:6]  # grid wh
+
+            gtheta = t[:,6]
+            gtheta = torch.unsqueeze(gtheta,1)
+
+            gij = (gxy - offsets).long()
+            gi, gj = gij.T  # grid xy indices
+
+            # Append
+            a = t[:, 7].long()  # anchor indices
+            indices.append((b, a, gj.clamp_(0, gain[3] - 1), gi.clamp_(0, gain[2] - 1)))  # image, anchor, grid indices
+            tbox.append(torch.cat((gxy - gij, gwh,gtheta), 1))  # box
+            anch.append(anchors[a])  # anchors
+            tcls.append(c)  # class
+
+        return tcls, tbox , indices, anch 
+        #tcls is the categories, 
+        #tbox is gtbox与三个负责预测的网格的xy坐标偏移量，gtbox的宽高, 
+        #indices (b表示当前gtbox属于该batch内第几张图片，a表示gtbox与anchors的对应关系，负责预测的网格纵坐标，负责预测的网格横坐标)
+        #anch (最匹配的anchors)
+
+    def build_targets_with_ious(self, p, targets):# this function generates positive anchor targets' positions on the feature maps with different size
+        # Build targets for compute_loss(), input targets(image,class,x,y,w,h)
+        na, nt = self.na, targets.shape[0]  # number of anchors, targets
+        tcls, tbox, indices, anch = [], [], [], []
+        gain = torch.ones(8, device=targets.device)  # normalized to gridspace gain
+
+        ai = torch.arange(na, device=targets.device).float().view(na, 1).repeat(1, nt)  # same as .repeat_interleave(nt)
+
+        targets = torch.cat((targets.repeat(na, 1, 1), ai[:, :, None]), 2)  # append anchor indices
+        #print(targets)
+        #exit(0)
+        g = 0.5  # bias
+        off = torch.tensor([[0, 0],
+                            [1, 0], [0, 1], [-1, 0], [0, -1],  # j,k,l,m
+                             #[1, 1], [1, -1], [-1, 1], [-1, -1],  # jk,jm,lk,lm
+                            ], device=targets.device).float() * g  # offsets
+
+        for i in range(self.nl):
+            anchors = self.anchors[i]
+
+            gain[2:6] = torch.tensor(p[i].shape)[[3, 2, 3, 2]]  # xyxy gain
+
+            # Match targets to anchors
+            t = targets * gain
+            #print(t.shape)
+            if nt:
+                # Matches
+                #r = t[:, :, 4:6] / anchors[:, None]  # wh ratio
+                #j = torch.max(r, 1 / r).max(2)[0] < self.hyp['anchor_t']  # compare
+
+                arious = wh_iou(anchors, t[..., 4:6])
+
+                best_ious, best_n = arious.max(0)
+
+                j = arious > self.hyp['iou_t']  # arious大于iou阈值，则可被筛选为符合要求的anchor
+
+                # 或者把iou最大的作为符合要求的anchor
+                for i_j in range(j.shape[1]): #需要采用更简洁的方式进行实现
+                    j[best_n[i_j],i_j] = True
 
                 t = t[j]  # filter
 

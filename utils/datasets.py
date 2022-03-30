@@ -52,7 +52,7 @@ def seg2points(seg):
 
     return points
 
-
+#获取由点组成的多边形的最小外接矩形
 def seg2minrect(seg):
     # seg = ann['segmentation'][0]
     # print(seg)
@@ -212,6 +212,37 @@ def create_dataloader_obb(path, imgsz, batch_size, stride, single_cls=False, hyp
                   sampler=sampler,
                   pin_memory=True,
                   collate_fn=LoadImagesAndLabels.collate_fn4 if quad else LoadImagesAndLabels4OBB.collate_fn), dataset
+
+def create_dataloader_obb_v1(path, imgsz, batch_size, stride, single_cls=False, hyp=None, augment=False, cache=False, pad=0.0,
+                      rect=False, rank=-1, workers=8, image_weights=False, quad=False, prefix='', shuffle=False,select_cats=None):
+    if rect and shuffle:
+        LOGGER.warning('WARNING: --rect is incompatible with DataLoader shuffle, setting shuffle=False')
+        shuffle = False
+    with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
+        dataset = LoadImagesAndLabels4OBBV1(path, imgsz, batch_size,
+                                    augment=augment,  # augmentation
+                                    hyp=hyp,  # hyperparameters
+                                    rect=rect,  # rectangular batches
+                                    cache_images=cache,
+                                    single_cls=single_cls,
+                                    stride=int(stride),
+                                    pad=pad,
+                                    image_weights=image_weights,
+                                    prefix=prefix,
+                                    select_cats = select_cats)
+
+    batch_size = min(batch_size, len(dataset))
+    nd = torch.cuda.device_count()  # number of CUDA devices
+    nw = min([os.cpu_count() // max(nd // 2, 1), batch_size if batch_size > 1 else 0, workers])  # number of workers
+    sampler = None if rank == -1 else distributed.DistributedSampler(dataset, shuffle=shuffle)
+    loader = DataLoader if image_weights else InfiniteDataLoader  # only DataLoader allows for attribute updates
+    return loader(dataset,
+                  batch_size=batch_size,
+                  shuffle=shuffle and sampler is None,
+                  num_workers=nw,
+                  sampler=sampler,
+                  pin_memory=True,
+                  collate_fn=LoadImagesAndLabels.collate_fn4 if quad else LoadImagesAndLabels4OBBV1.collate_fn), dataset
 
 class InfiniteDataLoader(dataloader.DataLoader):
     """ Dataloader that reuses workers
@@ -1165,7 +1196,7 @@ class LoadImagesAndLabels4COCO(LoadImagesAndLabels):
         data_root = Path(path).parent.parent
         images_root = os.path.join(data_root,'images')
         self.img_files =  []
-        self.labels = []
+        self.labels = [] #(img,cat,x,y,w,h)
         self.shapes = []
         self.segments = []
         self.obbs = []
@@ -1266,11 +1297,9 @@ class LoadImagesAndLabels4COCO(LoadImagesAndLabels):
                     shapes[i] = [maxi, 1]
                 elif mini > 1:
                     shapes[i] = [1, 1 / mini]
-            #print(shapes)
-            #print(pad)
-            #print(np.ceil(np.array(shapes) * img_size / stride + pad))
+
             self.batch_shapes = np.ceil(np.array(shapes) * img_size / stride + pad).astype(np.int) * stride
-            #print(self.batch_shapes)
+
         # Cache images into RAM/disk for faster training (WARNING: large datasets may exceed system resources)
         self.imgs, self.img_npy = [None] * n, [None] * n
         if cache_images:
@@ -1312,7 +1341,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
 
             img, labels, segments4 = mosaic_fun(index)
             shapes = None
-            #print(img.shape)
+
             # MixUp augmentation
             if random.random() < hyp['mixup']:
                 img, labels, segments4 = mixup_poly(img, labels, segments4, *mosaic_fun(random.randint(0, self.n - 1)))
@@ -1320,17 +1349,12 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
         else:
             # Load image
             img, (h0, w0), (h, w) = self.load_image(index)
-            #print('load image:')
-            #print(img.shape)
             
             # Letterbox
             shape = self.batch_shapes[self.batch[index]] if self.rect else self.img_size  # final letterboxed shape
-            #print(self.batch_shapes)
-            #print(shape)
-            #print(self.augment)
+
             img, ratio, pad = letterbox(img, shape, auto=False, scaleup=self.augment)
-            #print(pad)
-            #print(img.shape)
+
             shapes = (h0, w0), ((h / h0, w / w0), pad)  # for COCO mAP rescaling
 
             labels = self.labels[index].copy()
@@ -1352,8 +1376,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
         if nl:
             labels[:, 1:5] = xyxy2xywhn(labels[:, 1:5], w=img.shape[1], h=img.shape[0], clip=True, eps=1E-3)
             segments4 = np.array([xy2xyn(x, w=img.shape[1], h=img.shape[0],clip=True, eps=1E-3) for x in segments4])
-            #print(labels.shape)
-            #print(segments4.shape)  
+
         if self.augment:
             # Albumentations
             img, labels = self.albumentations(img, labels)
@@ -1388,21 +1411,18 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
         #show_segs(img,np.array([xyn2xy(x, w=img.shape[1], h=img.shape[0]) for x in segments4]))
         if nl:
             #obbs = poly2obb(segments4)
-            obbs = poly2obb_without_regular(segments4)
-            #obbs = poly2obb_v2(segments4)
+            #obbs = poly2obb_without_regular(segments4)
+            obbs = poly2obb_v2(segments4)
             label_boxes_out[:, 1:] = torch.from_numpy(labels)
             #labels_out = torch.from_numpy(labels[:,0])
-            #print(obbs_out.shape)
-            #print(obbs.shape)
+
             obbs_out[:,2:] = obbs
             obbs_out[:,1] = torch.from_numpy(labels[:,0])
 
         # Convert
         img = img.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
         img = np.ascontiguousarray(img)
-        #print('input shape')
-        #print(img.shape)
-        #print(label_boxes_out.shape)
+
         return torch.from_numpy(img), label_boxes_out, self.img_files[index], shapes, obbs_out
 
     def load_mosaic(self, index):
@@ -1461,8 +1481,7 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
                                            border=self.mosaic_border)  # border to remove
         
         #obb_labels4 = poly2obb(segments4)
-        #print('img4.shape')
-        #print(img4.shape)
+
         return img4, labels4, segments4 
 
     @staticmethod
@@ -1471,9 +1490,180 @@ class LoadImagesAndLabels4OBB(LoadImagesAndLabels4COCO):
         for i, lb in enumerate(label):
             lb[:, 0] = i  # add target image index for build_targets()
             obbs_out[i][:,0] = i
-        #for im in img:
-        #    print(im.shape)
+
         return torch.stack(img, 0), torch.cat(label, 0), path, shapes, torch.cat(obbs_out,0)
+
+class LoadImagesAndLabels4OBBV1(LoadImagesAndLabels4COCO):
+
+    def __getitem__(self, index):
+        #index = 1
+        index = self.indices[index]  # linear, shuffled, or image_weights
+        #print(index)
+        hyp = self.hyp
+        mosaic = self.mosaic and random.random() < hyp['mosaic']
+        #print(mosaic)
+        #print(self.augment)
+        if mosaic:
+            # Load mosaic
+            if hyp['mosaic_n']:
+                mosaic_fun =self.load_mosaic
+            else:
+                mosaic_fun = self.load_mosaic9
+
+            img, labels, segments4 = mosaic_fun(index)
+            shapes = None
+
+            # MixUp augmentation
+            if random.random() < hyp['mixup']:
+                img, labels, segments4 = mixup_poly(img, labels, segments4, *mosaic_fun(random.randint(0, self.n - 1)))
+
+        else:
+            # Load image
+            img, (h0, w0), (h, w) = self.load_image(index)
+            
+            # Letterbox
+            shape = self.batch_shapes[self.batch[index]] if self.rect else self.img_size  # final letterboxed shape
+
+            img, ratio, pad = letterbox(img, shape, auto=False, scaleup=self.augment)
+
+            shapes = (h0, w0), ((h / h0, w / w0), pad)  # for COCO mAP rescaling
+
+            labels = self.labels[index].copy()
+            segments4 = self.segments[index].copy()
+           
+            if labels.size:  # normalized xywh to pixel xyxy format
+                labels[:, 1:] = xywhn2xyxy(labels[:, 1:], ratio[0] * w, ratio[1] * h, padw=pad[0], padh=pad[1])
+                segments4 = [xyn2xy(x,ratio[0] * w, ratio[1] * h, padw=pad[0], padh=pad[1]) for x in segments4]
+
+            if self.augment:
+                img, labels, segments4 = random_perspective_segs(img, labels,segments4,
+                                                 degrees=hyp['degrees'],
+                                                 translate=hyp['translate'],
+                                                 scale=hyp['scale'],
+                                                 shear=hyp['shear'],
+                                                 perspective=hyp['perspective'])
+        #show_segs(img,segments4)
+        nl = len(labels)  # number of labels
+        if nl:
+            labels[:, 1:5] = xyxy2xywhn(labels[:, 1:5], w=img.shape[1], h=img.shape[0], clip=True, eps=1E-3)
+            segments4 = np.array([xy2xyn(x, w=img.shape[1], h=img.shape[0],clip=True, eps=1E-3) for x in segments4])
+
+        if self.augment:
+            # Albumentations
+            img, labels = self.albumentations(img, labels)
+
+            nl = len(labels)  # update after albumentations
+
+            # HSV color-space
+            augment_hsv(img, hgain=hyp['hsv_h'], sgain=hyp['hsv_s'], vgain=hyp['hsv_v'])
+
+            # Flip up-down
+            if random.random() < hyp['flipud']:
+                img = np.flipud(img)
+                if nl:
+                    segments4[:,:,1] = 1-segments4[:,:,1]
+                    labels[:, 2] = 1 - labels[:, 2]
+
+            # Flip left-right
+            if random.random() < hyp['fliplr']:
+                img = np.fliplr(img)
+                if nl:
+                    labels[:, 1] = 1 - labels[:, 1]
+                    segments4[:,:,0] = 1-segments4[:,:,0]
+
+            # Cutouts
+            # labels = cutout(img, labels, p=0.5)
+            # nl = len(labels)  # update after cutout
+
+        label_boxes_out = torch.zeros((nl, 7)) #(img,cat,x,y,w,h,theta) here theta belong to [0,pi/2]
+        
+        obbs_out = torch.zeros((nl,7)) #(img,cat,x,y,w,h,theta) here theta belong to [0,pi/2]
+        
+        #thetas_out = torch.zeros((nl,2)) #(img,theta)
+
+        #show_segs(img,np.array([xyn2xy(x, w=img.shape[1], h=img.shape[0]) for x in segments4]))
+        if nl:
+            obbs = poly2obb_without_regular(segments4)
+            label_boxes_out[:, 1:6] = torch.from_numpy(labels)
+            obbs_out[:,2:] = obbs
+            obbs_out[:,1] = torch.from_numpy(labels[:,0])
+            label_boxes_out[:,6] = obbs_out[:,6]
+
+        # Convert
+        img = img.transpose((2, 0, 1))[::-1]  # HWC to CHW, BGR to RGB
+        img = np.ascontiguousarray(img)
+
+        return torch.from_numpy(img), label_boxes_out, self.img_files[index], shapes#, obbs_out,
+        #label_boxes_out (img,cat,x,y,w,h,theta) here x,y,w,h is the hbb
+        #obbs_out (img,cat,w,y,w,h,theta)
+    def load_mosaic(self, index):
+        # YOLOv5 4-mosaic loader. Loads 1 image + 3 random images into a 4-image mosaic
+        labels4, segments4 = [], []
+        s = self.img_size
+        yc, xc = (int(random.uniform(-x, 2 * s + x)) for x in self.mosaic_border)  # mosaic center x, y
+        indices = [index] + random.choices(self.indices, k=3)  # 3 additional image indices
+        random.shuffle(indices)
+        for i, index in enumerate(indices):
+            # Load image
+            img, _, (h, w) = self.load_image(index)
+
+            # place img in img4
+            if i == 0:  # top left
+                img4 = np.full((s * 2, s * 2, img.shape[2]), 114, dtype=np.uint8)  # base image with 4 tiles
+                x1a, y1a, x2a, y2a = max(xc - w, 0), max(yc - h, 0), xc, yc  # xmin, ymin, xmax, ymax (large image)
+                x1b, y1b, x2b, y2b = w - (x2a - x1a), h - (y2a - y1a), w, h  # xmin, ymin, xmax, ymax (small image)
+            elif i == 1:  # top right
+                x1a, y1a, x2a, y2a = xc, max(yc - h, 0), min(xc + w, s * 2), yc
+                x1b, y1b, x2b, y2b = 0, h - (y2a - y1a), min(w, x2a - x1a), h
+            elif i == 2:  # bottom left
+                x1a, y1a, x2a, y2a = max(xc - w, 0), yc, xc, min(s * 2, yc + h)
+                x1b, y1b, x2b, y2b = w - (x2a - x1a), 0, w, min(y2a - y1a, h)
+            elif i == 3:  # bottom right
+                x1a, y1a, x2a, y2a = xc, yc, min(xc + w, s * 2), min(s * 2, yc + h)
+                x1b, y1b, x2b, y2b = 0, 0, min(w, x2a - x1a), min(y2a - y1a, h)
+
+            img4[y1a:y2a, x1a:x2a] = img[y1b:y2b, x1b:x2b]  # img4[ymin:ymax, xmin:xmax]
+            padw = x1a - x1b
+            padh = y1a - y1b
+
+            # Labels
+            labels, segments = self.labels[index].copy(), self.segments[index].copy()
+            if labels.size:
+                labels[:, 1:] = xywhn2xyxy(labels[:, 1:], w, h, padw, padh)  # normalized xywh to pixel xyxy format
+                segments = [xyn2xy(x, w, h, padw, padh) for x in segments]
+            labels4.append(labels)
+            segments4.extend(segments)
+
+        # Concat/clip labels
+        labels4 = np.concatenate(labels4, 0)
+        for x in (labels4[:, 1:], *segments4):
+            np.clip(x, 0, 2 * s, out=x)  # clip when using random_perspective()
+        # img4, labels4 = replicate(img4, labels4)  # replicate
+
+        # Augment
+        img4, labels4, segments4 = copy_paste(img4, labels4, segments4, p=self.hyp['copy_paste'])
+        
+        img4, labels4, segments4 = random_perspective_segs(img4, labels4, segments4,
+                                           degrees=self.hyp['degrees'],
+                                           translate=self.hyp['translate'],
+                                           scale=self.hyp['scale'],
+                                           shear=self.hyp['shear'],
+                                           perspective=self.hyp['perspective'],
+                                           border=self.mosaic_border)  # border to remove
+        
+        #obb_labels4 = poly2obb(segments4)
+
+        return img4, labels4, segments4 
+
+    @staticmethod
+    def collate_fn(batch):
+        #img, label, path, shapes, obbs_out = zip(*batch)  # transposed
+        img, label, path, shapes = zip(*batch)  # transposed
+        for i, lb in enumerate(label):
+            lb[:, 0] = i  # add target image index for build_targets()
+            #obbs_out[i][:,0] = i
+
+        return torch.stack(img, 0), torch.cat(label, 0), path, shapes#, torch.cat(obbs_out,0)
 
 if __name__ == "__main__":
     hyp = yaml.safe_load(open('data/hyps/hyp.scratch.yaml'))
@@ -1481,4 +1671,3 @@ if __name__ == "__main__":
     dataset_obb = LoadImagesAndLabels4OBB('/home/qilei/DATASETS/trans_drone/andover_worster/annotations/test_AW_obb.json',augment = True,hyp=hyp)
     _,label_outs,_,_,obbs_out = dataset_obb.__getitem__(11)
     print(obbs_out)
-    #print(label_outs)
