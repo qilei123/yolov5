@@ -39,13 +39,13 @@ if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))  # add ROOT to PATH
 ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
 
-import val_obb_v1 # for end-of-epoch mAP
+import val  # for end-of-epoch mAP
 from models.experimental import attempt_load
 from models.yolo import Model
 from utils.autoanchor import check_anchors
 from utils.autobatch import check_train_batch_size
 from utils.callbacks import Callbacks
-from utils.datasets import create_dataloader, create_dataloader_obb_v1
+from utils.datasets import create_dataloader
 from utils.downloads import attempt_download
 from utils.general import (LOGGER, check_dataset, check_file, check_git_status, check_img_size, check_requirements,
                            check_suffix, check_yaml, colorstr, get_latest_run, increment_path, init_seeds,
@@ -53,7 +53,7 @@ from utils.general import (LOGGER, check_dataset, check_file, check_git_status, 
                            print_args, print_mutation, strip_optimizer)
 from utils.loggers import Loggers
 from utils.loggers.wandb.wandb_utils import check_wandb_resume
-from utils.loss_obb_v1 import ComputeLossV1
+from utils.loss import ComputeLoss
 from utils.metrics import fitness
 from utils.plots import plot_evolve, plot_labels
 from utils.torch_utils import EarlyStopping, ModelEMA, de_parallel, select_device, torch_distributed_zero_first
@@ -221,22 +221,22 @@ def train(hyp,  # path/to/hyp.yaml or hyp dictionary
         LOGGER.info('Using SyncBatchNorm()')
     hyp['mosaic_n'] = opt.mosaic_n
     # Trainloader
-    train_loader, dataset = create_dataloader_obb_v1(train_path, imgsz, batch_size // WORLD_SIZE, gs, single_cls,
+    train_loader, dataset = create_dataloader(train_path, imgsz, batch_size // WORLD_SIZE, gs, single_cls,
                                               hyp=hyp, augment=True, cache=None if opt.cache == 'val' else opt.cache,
                                               rect=opt.rect, rank=LOCAL_RANK, workers=workers,
                                               image_weights=opt.image_weights, quad=opt.quad,
-                                              prefix=colorstr('train: '), shuffle=True,select_cats=names)
-    
+                                              prefix=colorstr('train: '), shuffle=True)
+
     mlc = int(np.concatenate(dataset.labels, 0)[:, 0].max())  # max label class
     nb = len(train_loader)  # number of batches
     assert mlc < nc, f'Label class {mlc} exceeds nc={nc} in {data}. Possible class labels are 0-{nc - 1}'
 
     # Process 0
     if RANK in [-1, 0]:
-        val_loader = create_dataloader_obb_v1(val_path, imgsz, batch_size // WORLD_SIZE * 2, gs, single_cls,
+        val_loader = create_dataloader(val_path, imgsz, batch_size // WORLD_SIZE * 2, gs, single_cls,
                                        hyp=hyp, cache=None if noval else opt.cache,
                                        rect=True, rank=-1, workers=workers * 2, pad=0.5,
-                                       prefix=colorstr('val: '),select_cats=names)[0]
+                                       prefix=colorstr('val: '))[0]
 
         if not resume:
             labels = np.concatenate(dataset.labels, 0)
@@ -278,7 +278,7 @@ def train(hyp,  # path/to/hyp.yaml or hyp dictionary
     scheduler.last_epoch = start_epoch - 1  # do not move
     scaler = amp.GradScaler(enabled=cuda)
     stopper = EarlyStopping(patience=opt.patience)
-    compute_loss = ComputeLossV1(model)  # init loss class
+    compute_loss = ComputeLoss(model)  # init loss class
     LOGGER.info(f'Image sizes {imgsz} train, {imgsz} val\n'
                 f'Using {train_loader.num_workers * WORLD_SIZE} dataloader workers\n'
                 f"Logging results to {colorstr('bold', save_dir)}\n"
@@ -330,8 +330,8 @@ def train(hyp,  # path/to/hyp.yaml or hyp dictionary
             # Forward
             with amp.autocast(enabled=cuda):
                 pred = model(imgs)  # forward
-                #print(pred[0].shape)
-                #exit(0)
+                # print(pred[0].shape)
+                # exit(0)
                 loss, loss_items = compute_loss(pred, targets.to(device))  # loss scaled by batch_size
                 if RANK != -1:
                     loss *= WORLD_SIZE  # gradient averaged between devices in DDP mode
@@ -371,7 +371,7 @@ def train(hyp,  # path/to/hyp.yaml or hyp dictionary
             ema.update_attr(model, include=['yaml', 'nc', 'hyp', 'names', 'stride', 'class_weights'])
             final_epoch = (epoch + 1 == epochs) or stopper.possible_stop
             if not noval or final_epoch:  # Calculate mAP
-                results, maps, _ = val_obb_v1.run(data_dict,
+                results, maps, _ = val.run(data_dict,
                                            batch_size=batch_size // WORLD_SIZE * 2,
                                            imgsz=imgsz,
                                            model=ema.ema,
