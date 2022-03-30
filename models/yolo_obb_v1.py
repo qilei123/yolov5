@@ -30,7 +30,7 @@ except ImportError:
     thop = None
 
 
-class Detect(nn.Module):
+class DetectOBBV1(nn.Module):
     stride = None  # strides computed during build
     onnx_dynamic = False  # ONNX export parameter
 
@@ -82,7 +82,7 @@ class Detect(nn.Module):
         return grid, anchor_grid
 
 
-class Model(nn.Module):
+class ModelOBB(nn.Module):
     def __init__(self, cfg='yolov5s.yaml', ch=3, nc=None, anchors=None):  # model, input channels, number of classes
         super().__init__()
         if isinstance(cfg, dict):
@@ -107,7 +107,7 @@ class Model(nn.Module):
 
         # Build strides, anchors
         m = self.model[-1]  # Detect()
-        if isinstance(m, Detect):
+        if isinstance(m, DetectOBBV1):
             s = 256  # 2x min stride
             m.inplace = self.inplace
             m.stride = torch.tensor([s / x.shape[-2] for x in self.forward(torch.zeros(1, ch, s, s))])  # forward
@@ -182,7 +182,7 @@ class Model(nn.Module):
         return y
 
     def _profile_one_layer(self, m, x, dt):
-        c = isinstance(m, Detect)  # is final layer, copy input as inplace fix
+        c = isinstance(m, DetectOBBV1)  # is final layer, copy input as inplace fix
         o = thop.profile(m, inputs=(x.copy() if c else x,), verbose=False)[0] / 1E9 * 2 if thop else 0  # FLOPs
         t = time_sync()
         for _ in range(10):
@@ -233,7 +233,7 @@ class Model(nn.Module):
         # Apply to(), cpu(), cuda(), half() to model tensors that are not parameters or registered buffers
         self = super()._apply(fn)
         m = self.model[-1]  # Detect()
-        if isinstance(m, Detect):
+        if isinstance(m, DetectOBBV1):
             m.stride = fn(m.stride)
             m.grid = list(map(fn, m.grid))
             if isinstance(m.anchor_grid, list):
@@ -271,7 +271,7 @@ def parse_model(d, ch):  # model_dict, input_channels(3)
             args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
-        elif m is Detect:
+        elif m is DetectOBBV1:
             args.append([ch[x] for x in f])
             if isinstance(args[1], int):  # number of anchors
                 args[1] = [list(range(args[1] * 2))] * len(f)
@@ -307,7 +307,7 @@ if __name__ == '__main__':
     device = select_device(opt.device)
 
     # Create model
-    model = Model(opt.cfg).to(device)
+    model = ModelOBB(opt.cfg).to(device)
     model.train()
 
     # Profile
@@ -319,7 +319,7 @@ if __name__ == '__main__':
     if opt.test:
         for cfg in Path(ROOT / 'models').rglob('yolo*.yaml'):
             try:
-                _ = Model(cfg)
+                _ = ModelOBB(cfg)
             except Exception as e:
                 print(f'Error in {cfg}: {e}')
 
