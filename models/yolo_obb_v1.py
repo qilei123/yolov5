@@ -11,6 +11,8 @@ import sys
 from copy import deepcopy
 from pathlib import Path
 
+import numpy as np
+
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[1]  # YOLOv5 root directory
 if str(ROOT) not in sys.path:
@@ -37,7 +39,7 @@ class DetectOBBV1(nn.Module):
     def __init__(self, nc=80, anchors=(), ch=(), inplace=True):  # detection layer
         super().__init__()
         self.nc = nc  # number of classes
-        self.no = nc + 5  # number of outputs per anchor
+        self.no = nc + 6  # number of outputs per anchor 这里调整head的输出从nc+5到nc+6，增加一个量，用来预测其方向角度
         self.nl = len(anchors)  # number of detection layers
         #print(anchors)
         self.na = len(anchors[0]) // 2  # number of anchors
@@ -51,10 +53,10 @@ class DetectOBBV1(nn.Module):
         z = []  # inference output
         for i in range(self.nl):
             x[i] = self.m[i](x[i])  # conv
-            bs, _, ny, nx = x[i].shape  # x(bs,255,20,20) to x(bs,3,20,20,85)
+            bs, _, ny, nx = x[i].shape  # 对预测特征向量进行转质，从x(bs,3*no,ny,nx) 转为 x(bs,3,ny, nx, no) no即每个anchor的输出向量的维度,no个维度的向量分别预测x,y,w,h,theta,obj,cls*nc
             x[i] = x[i].view(bs, self.na, self.no, ny, nx).permute(0, 1, 3, 4, 2).contiguous()
 
-            if not self.training:  # inference
+            if not self.training:  # inference,该步骤为非训练状态下的输出，和loss中的过程似乎有点冗余
                 if self.onnx_dynamic or self.grid[i].shape[2:4] != x[i].shape[2:4]:
                     self.grid[i], self.anchor_grid[i] = self._make_grid(nx, ny, i)
 
@@ -62,10 +64,12 @@ class DetectOBBV1(nn.Module):
                 if self.inplace:
                     y[..., 0:2] = (y[..., 0:2] * 2 - 0.5 + self.grid[i]) * self.stride[i]  # xy
                     y[..., 2:4] = (y[..., 2:4] * 2) ** 2 * self.anchor_grid[i]  # wh
+                    y[..., 4] = y[..., 4] * np.pi/2 #这里第四个向值代表偏转角度，范围是[0,pi/2]
                 else:  # for YOLOv5 on AWS Inferentia https://github.com/ultralytics/yolov5/pull/2953
                     xy = (y[..., 0:2] * 2 - 0.5 + self.grid[i]) * self.stride[i]  # xy
                     wh = (y[..., 2:4] * 2) ** 2 * self.anchor_grid[i]  # wh
-                    y = torch.cat((xy, wh, y[..., 4:]), -1)
+                    theta= y[..., 4:5] * np.pi / 2  # 这里第四个向值代表偏转角度，范围是[0,pi/2]
+                    y = torch.cat((xy, wh, theta, y[..., 4:]), -1) #将theta也并入到输出特征矩阵y中
                 z.append(y.view(bs, -1, self.no))
 
         return x if self.training else (torch.cat(z, 1), x)
