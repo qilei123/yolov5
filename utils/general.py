@@ -804,6 +804,99 @@ def non_max_suppression(prediction, conf_thres=0.25, iou_thres=0.45, classes=Non
 
     return output
 
+def non_max_suppression_obb_v1(prediction, conf_thres=0.25, iou_thres=0.45, classes=None, agnostic=False, multi_label=False,
+                        labels=(), max_det=300):
+    """Runs Non-Maximum Suppression (NMS) on inference results
+
+    Returns:
+         list of detections, on (n,6) tensor per image [xyxy, conf, cls]
+    """
+    # nc+6包含预测的(x,y,w,h,theta,obj,nc个参数用来预测类别)
+    nc = prediction.shape[2] - 6  # number of classes 这里将原版的5改为6，因为增加了一个theta量在第5个数据位
+    xc = prediction[..., 5] > conf_thres  # candidates 这里将原版的4改为5，因为第五位为theta位置，第六位才是obj的confidence
+
+    # Checks
+    assert 0 <= conf_thres <= 1, f'Invalid Confidence threshold {conf_thres}, valid values are between 0.0 and 1.0'
+    assert 0 <= iou_thres <= 1, f'Invalid IoU {iou_thres}, valid values are between 0.0 and 1.0'
+
+    # Settings
+    min_wh, max_wh = 2, 7680  # (pixels) minimum and maximum box width and height
+    max_nms = 30000  # maximum number of boxes into torchvision.ops.nms()
+    time_limit = 10.0  # seconds to quit after
+    redundant = True  # require redundant detections
+    multi_label &= nc > 1  # multiple labels per box (adds 0.5ms/img)
+    merge = False  # use merge-NMS
+
+    t = time.time()
+    output = [torch.zeros((0, 7), device=prediction.device)] * prediction.shape[0] #这里将6改为7，输出向量共有七个值，(x,y,w,h,theta,obj,cls)
+    for xi, x in enumerate(prediction):  # image index, image inference
+        # Apply constraints 这里剔除掉过大和过小的预测框
+        x[((x[..., 2:4] < min_wh) | (x[..., 2:4] > max_wh)).any(1), 4] = 0  # width-height
+        x = x[xc[xi]]  # confidence
+
+        # Cat apriori labels if autolabelling label向量包含的信息(cat, x,y,w,h,theta)
+        if labels and len(labels[xi]):
+            lb = labels[xi]
+            v = torch.zeros((len(lb), nc + 6), device=x.device) #这里将原代码中的5修改为6，因增加了一个theta维度
+            v[:, :5] = lb[:, 1:6]  # box 4->5和5->6，将theta的值也复制进来
+            v[:, 5] = 1.0  # conf 4->5,这里第6位代表confidence
+            v[range(len(lb)), lb[:, 0].long() + 6] = 1.0  # cls 5->6这里修改也是因为theta
+            x = torch.cat((x, v), 0) #这里将preds和targets进行了拼接
+
+        # If none remain process next image
+        if not x.shape[0]:
+            continue
+
+        # Compute conf 5->6,4->5,5->6这里的修改也是因为theta的修改
+        x[:, 6:] *= x[:, 5:6]  # conf = obj_conf * cls_conf, conf用来确定所属类别
+
+        # Box (center x, center y, width, height) to (x1, y1, x2, y2)
+        box = xywh2xyxy(x[:, :4])
+
+        # Detections matrix nx6 (xyxy, conf, cls) -> nx7 (x,y,x,y, theta, conf, cls)这个片段利用conf_thres或者取最大的conf来筛选出有足够置信度的预测框，这里的改动保留了theta的量
+        if multi_label:
+            i, j = (x[:, 6:] > conf_thres).nonzero(as_tuple=False).T
+            x = torch.cat((box[i],x[i,4:5], x[i, j + 6, None], j[:, None].float()), 1)
+        else:  # best class only
+            conf, j = x[:, 6:].max(1, keepdim=True)
+            x = torch.cat((box, x[:,4:5], conf, j.float()), 1)[conf.view(-1) > conf_thres]
+
+        # Filter by class这里将5:6修改为6:7,最后一个值保留了类别
+        if classes is not None:
+            x = x[(x[:, 6:7] == torch.tensor(classes, device=x.device)).any(1)]
+
+        # Apply finite constraint
+        # if not torch.isfinite(x).all():
+        #     x = x[torch.isfinite(x).all(1)]
+
+        # Check shape
+        n = x.shape[0]  # number of boxes
+        if not n:  # no boxes
+            continue
+        elif n > max_nms:  # excess boxes
+            x = x[x[:, 5].argsort(descending=True)[:max_nms]]  # sort by confidence 这里将4改为5，confidence的index往后走一个值
+
+        # Batched NMS 这里将5:6修改为6:7,最后一个值保留了类别
+        c = x[:, 6:7] * (0 if agnostic else max_wh)  # classes 这里利用max_wh和类别，将不同的类别的xy坐标加以区分，避免不同类别之间进行竞争压制，只进行类内竞争压制
+        boxes, scores = x[:, :4] + c, x[:, 5]  # boxes (offset by class), scores 这里将x[:, 4]修改为x[:, 5],第六个数值位保留了score
+        i = torchvision.ops.nms(boxes, scores, iou_thres)  # NMS
+        if i.shape[0] > max_det:  # limit detections
+            i = i[:max_det]
+        if merge and (1 < n < 3E3):  # Merge NMS (boxes merged using weighted mean)
+            # update boxes as boxes(i,4) = weights(i,n) * boxes(n,4)
+            iou = box_iou(boxes[i], boxes) > iou_thres  # iou matrix
+            weights = iou * scores[None]  # box weights
+            x[i, :4] = torch.mm(weights, x[:, :4]).float() / weights.sum(1, keepdim=True)  # merged boxes
+            if redundant:
+                i = i[iou.sum(1) > 1]  # require redundancy
+
+        output[xi] = x[i]
+        if (time.time() - t) > time_limit:
+            LOGGER.warning(f'WARNING: NMS time limit {time_limit}s exceeded')
+            #如果需要单步调试，那么需要把这里的break进行注释，不然会因为超时而不能将batch内的所有的结果进行nms
+            break  # time limit exceeded
+
+    return output
 
 def non_max_suppression_obb(prediction, conf_thres=0.25, iou_thres=0.45, classes=None, agnostic=False, multi_label=False,
                         labels=(), max_det=300):

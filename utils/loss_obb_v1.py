@@ -70,7 +70,7 @@ class ComputeLossV1:
                     t[range(n), tcls[i]] = self.cp
                     lcls += self.BCEcls(ps[:,6:], t)  # BCE
                     #求出theta的regression loss 并且利用pi/2进行normalize
-                    ltheta +=  (ptheta - ttheta[i]).abs().mean()*2/pi
+                    ltheta +=  (ptheta - ttheta[i]).abs().mean()*2/np.pi
                 # Append targets to text file
                 # with open('targets.txt', 'a') as file:
                 #     [file.write('%11.5g ' * 4 % tuple(x) + '\n') for x in torch.cat((txy[i], twh[i]), 1)]

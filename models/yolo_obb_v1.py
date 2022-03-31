@@ -69,7 +69,7 @@ class DetectOBBV1(nn.Module):
                     xy = (y[..., 0:2] * 2 - 0.5 + self.grid[i]) * self.stride[i]  # xy
                     wh = (y[..., 2:4] * 2) ** 2 * self.anchor_grid[i]  # wh
                     theta= y[..., 4:5] * np.pi / 2  # 这里第四个向值代表偏转角度，范围是[0,pi/2]
-                    y = torch.cat((xy, wh, theta, y[..., 4:]), -1) #将theta也并入到输出特征矩阵y中
+                    y = torch.cat((xy, wh, theta, y[..., 5:]), -1) #将theta也并入到输出特征矩阵y中,这里需要将代码中4:改为5:
                 z.append(y.view(bs, -1, self.no))
 
         return x if self.training else (torch.cat(z, 1), x)
