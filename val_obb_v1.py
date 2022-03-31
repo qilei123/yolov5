@@ -41,7 +41,7 @@ from utils.datasets import create_dataloader
 from utils.general import (LOGGER, box_iou, check_dataset, check_img_size, check_requirements, check_yaml,
                            coco80_to_coco91_class, colorstr, increment_path, non_max_suppression, non_max_suppression_obb_v1, print_args,
                            scale_coords, xywh2xyxy, xywh2xyxy1, xyxy2xywh)
-from utils.metrics import ConfusionMatrix, ap_per_class
+from utils.metrics import ConfusionMatrix, ConfusionMatrixOBBV1, ap_per_class
 from utils.plots import output_to_target, plot_images, plot_val_study
 from utils.torch_utils import select_device, time_sync
 
@@ -170,7 +170,7 @@ def run(data,
                                        workers=workers, prefix=colorstr(f'{task}: '))[0]
 
     seen = 0
-    confusion_matrix = ConfusionMatrix(nc=nc)
+    confusion_matrix = ConfusionMatrixOBBV1(nc=nc) #ConfusionMatrix->ConfusionMatrixOBBV1
     names = {k: v for k, v in enumerate(model.names if hasattr(model, 'names') else model.module.names)}
     class_map = coco80_to_coco91_class() if is_coco else list(range(1000))
     s = ('%20s' + '%11s' * 6) % ('Class', 'Images', 'Labels', 'P', 'R', 'mAP@.5', 'mAP@.5:.95')
