@@ -70,16 +70,16 @@ def save_one_json(predn, jdict, path, class_map):
 
 def process_batch(detections, labels, iouv):
     """
-    Return correct predictions matrix. Both sets of boxes are in (x1, y1, x2, y2) format.
+    Return correct predictions matrix. Both sets of boxes are in (x1, y1, x2, y2, theta) format.
     Arguments:
-        detections (Array[N, 6]), x1, y1, x2, y2, conf, class
-        labels (Array[M, 5]), class, x1, y1, x2, y2
+        detections (Array[N, 7]), x1, y1, x2, y2, theta, conf, class
+        labels (Array[M, 6]), class, x1, y1, x2, y2, theta
     Returns:
         correct (Array[N, 10]), for 10 IoU levels
     """
     correct = torch.zeros(detections.shape[0], iouv.shape[0], dtype=torch.bool, device=iouv.device)
-    iou = box_iou(labels[:, 1:], detections[:, :4])
-    x = torch.where((iou >= iouv[0]) & (labels[:, 0:1] == detections[:, 5]))  # IoU above threshold and classes match
+    iou = box_iou(labels[:, 1:5], detections[:, :4]) #这里需要修改labels中的界限，先不考虑theta
+    x = torch.where((iou >= iouv[0]) & (labels[:, 0:1] == detections[:, 6]))  # IoU above threshold and classes match 5->6这里修改detections中cls的位置
     if x[0].shape[0]:
         matches = torch.cat((torch.stack(x, 1), iou[x[0], x[1]][:, None]), 1).cpu().numpy()  # [label, detection, iou]
         if x[0].shape[0] > 1:
@@ -207,8 +207,8 @@ def run(data,
         dt[2] += time_sync() - t3
 
         # Metrics
-        for si, pred in enumerate(out):
-            labels = targets[targets[:, 0] == si, 1:]
+        for si, pred in enumerate(out): #pred为(x,y,x,y, theta, conf, cls)
+            labels = targets[targets[:, 0] == si, 1:] #这里获得的labels其中每个向量包含6个值，(cat, x,y,w,h,theta)
             nl = len(labels)
             tcls = labels[:, 0].tolist() if nl else []  # target class
             path, shape = Path(paths[si]), shapes[si][0]
@@ -221,7 +221,7 @@ def run(data,
 
             # Predictions
             if single_cls:
-                pred[:, 5] = 0
+                pred[:, 6] = 0 #5->6,这里第七位置是预测的类别
             predn = pred.clone()
             scale_coords(im[si].shape[1:], predn[:, :4], shape, shapes[si][1])  # native-space pred
 
