@@ -51,7 +51,7 @@ class ComputeLossV1:
                 pwh = (ps[:, 2:4].sigmoid() * 2) ** 2 * anchors[i]
                 #这里获取预测的theta值，它处在第5个位置上，索引为4
                 ptheta = ps[:, 4].sigmoid() * np.pi/2
-                ptheta[ptheta<0.001]=np.pi/2 #这里将过小的角度直接提升为pi/2,因此预测的theta为(0.001,pi/2]
+                ptheta[ptheta<0.0001]=np.pi/2 #这里将过小的角度直接提升为pi/2,因此预测的theta为(0.001,pi/2]
 
                 pbox = torch.cat((pxy, pwh), 1)  # predicted box
                 iou = bbox_iou(pbox.T, tbox[i], x1y1x2y2=False, CIoU=False)  # iou(prediction, target)
