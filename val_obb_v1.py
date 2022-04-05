@@ -25,6 +25,7 @@ import sys
 from pathlib import Path
 from threading import Thread
 
+import cv2
 import numpy as np
 import torch
 from tqdm import tqdm
@@ -91,6 +92,25 @@ def process_batch(detections, labels, iouv):
         correct[matches[:, 1].long()] = matches[:, 2:3] >= iouv
     return correct
 
+def debug_show_on_image(img_path,preds,targets):
+    image = cv2.imread(str(img_path))
+    targets = targets.cpu().numpy()
+    color = (255, 0, 0)
+    thickness = 2
+    for target in targets:
+        start_point = (int(target[1]),int(target[2]))
+        end_point = (int(target[3]), int(target[4]))
+        image = cv2.rectangle(image, start_point, end_point, color, thickness)
+    cv2.imwrite('/home/qilei/DATASETS/TEMP/targets.jpg',image)
+
+    image = cv2.imread(str(img_path))
+    preds = preds.cpu().numpy()
+
+    for pred in preds:
+        start_point = (int(pred[0]),int(pred[1]))
+        end_point = (int(pred[2]), int(pred[3]))
+        image = cv2.rectangle(image, start_point, end_point, color, thickness)
+    cv2.imwrite('/home/qilei/DATASETS/TEMP/preds.jpg',image)
 
 @torch.no_grad()
 def run(data,
@@ -203,7 +223,7 @@ def run(data,
         targets[:, 2:] *= torch.Tensor([width, height, width, height, 1]).to(device)  # to pixels 这里在尺度向量中增加一个1，用来变换theta的尺度
         lb = [targets[targets[:, 0] == i, 1:] for i in range(nb)] if save_hybrid else []  # for autolabelling
         t3 = time_sync()
-        out = non_max_suppression_obb_v1(out, conf_thres, iou_thres, labels=lb, multi_label=False, agnostic=single_cls)
+        out = non_max_suppression_obb_v1(out, conf_thres, iou_thres, labels=lb, multi_label=True, agnostic=single_cls)
         dt[2] += time_sync() - t3
 
         # Metrics
@@ -229,13 +249,15 @@ def run(data,
             if nl:
                 tbox = xywh2xyxy(labels[:, 1:5])
                 scale_coords(im[si].shape[1:], tbox, shape, shapes[si][1])  # native-space labels
-                labelsn = torch.cat((labels[:, 0:1], tbox), 1)  # native-space labels
+                labelsn = torch.cat((labels[:, 0:1], tbox, labels[:,5:6]), 1)  # native-space labels这里将theta也加入到labelsn里面，为之后的修改做准别
                 correct = process_batch(predn, labelsn, iouv)
+                #这个方法是用来进行调试的，显示中间出结果在原图像上显示是否正确
+                #debug_show_on_image(path,predn.clone(),labelsn.clone())
                 if plots:
                     confusion_matrix.process_batch(predn, labelsn)
             else:
                 correct = torch.zeros(pred.shape[0], niou, dtype=torch.bool)
-            stats.append((correct.cpu(), pred[:, 4].cpu(), pred[:, 5].cpu(), tcls))  # (correct, conf, pcls, tcls)
+            stats.append((correct.cpu(), pred[:, 5].cpu(), pred[:, 6].cpu(), tcls))  # (correct, conf, pcls, tcls)
 
             # Save/log
             if save_txt:

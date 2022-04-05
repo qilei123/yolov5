@@ -54,8 +54,11 @@ class ComputeLossV1:
                 ptheta[ptheta<0.001]=np.pi/2 #这里将过小的角度直接提升为pi/2,因此预测的theta为(0.001,pi/2]
 
                 pbox = torch.cat((pxy, pwh), 1)  # predicted box
-                iou = bbox_iou(pbox.T, tbox[i], x1y1x2y2=False, CIoU=True)  # iou(prediction, target)
+                iou = bbox_iou(pbox.T, tbox[i], x1y1x2y2=False, CIoU=False)  # iou(prediction, target)
                 lbox += (1.0 - iou).mean()  # iou loss
+
+                # 求出theta的regression loss 并且利用pi/2进行normalize
+                ltheta += (ptheta - ttheta[i]).abs().mean() * 2 / np.pi
                 # Objectness
                 score_iou = iou.detach().clamp(0).type(tobj.dtype)
                 if self.sort_obj_iou:
@@ -69,8 +72,7 @@ class ComputeLossV1:
                     t = torch.full_like(ps[:, 6:], self.cn, device=device)  # targets
                     t[range(n), tcls[i]] = self.cp
                     lcls += self.BCEcls(ps[:,6:], t)  # BCE
-                    #求出theta的regression loss 并且利用pi/2进行normalize
-                    ltheta +=  (ptheta - ttheta[i]).abs().mean()*2/np.pi
+
                 # Append targets to text file
                 # with open('targets.txt', 'a') as file:
                 #     [file.write('%11.5g ' * 4 % tuple(x) + '\n') for x in torch.cat((txy[i], twh[i]), 1)]
@@ -90,7 +92,8 @@ class ComputeLossV1:
 
         bs = tobj.shape[0]  # batch size
         #todo 这里暂时先不讲theta的loss放入到loss计算中,先将hbb的检测在train和val过程都进行校准
-        return (lbox + lobj + lcls) * bs, torch.cat((lbox, lobj, lcls)).detach()
+        # 添加ltheta到loss里面，目前还未查到不收敛的原因
+        return (lbox + lobj + lcls+ ltheta) * bs, torch.cat((lbox, lobj, lcls)).detach()
 
     def build_targets(self, p,
                       targets):  # this function generates positive anchor targets' positions on the feature maps with different size

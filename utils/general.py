@@ -1181,9 +1181,9 @@ def poly2obb_without_regular(polys):
     polys_f32 = np.array(polys).astype(np.float32)
     obboxes = []
     for poly in polys_f32:
-        (x, y), (w, h), angle = cv2.minAreaRect(poly) #opencv 4.5版本之后，angle的范围为[0,90]
+        (x, y), (w, h), angle = cv2.minAreaRect(poly) #opencv 4.5版本之后，angle的范围为(0,90]
 
-        theta = 0 if angle == 90 else angle / 180 * pi  # [0,pi/2)
+        theta = angle / 180 * pi  # (0,pi/2]
 
         obboxes.append([x, y, w, h, theta])
 
