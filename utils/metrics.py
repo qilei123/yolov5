@@ -368,6 +368,9 @@ class ConfusionMatrixOBB:
     def print(self):
         for i in range(self.nc + 1):
             print(' '.join(map(str, self.matrix[i])))
+#todo 计划下一步通过rbbox来计算iou
+def rbbox_iou():
+    pass
 
 def bbox_iou(box1, box2, x1y1x2y2=True, GIoU=False, DIoU=False, CIoU=False, eps=1e-7):
     # Returns the IoU of box1 to box2. box1 is 4, box2 is nx4
